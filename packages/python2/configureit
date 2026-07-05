@@ -1,0 +1,13 @@
+#!/bin/sh
+
+BUILDDIR=$1
+INSTALLDIR=$2
+EXTRAARGS=$3
+echo $BUILDDIR
+echo $INSTALLDIR
+echo $EXTRAARGS
+. ./setupenv.sh
+cd $BUILDDIR || exit -1
+autoreconf || exit -1
+./configure --enable-shared --prefix=$INSTALLDIR --libdir=$INSTALLDIR/$DIDBS_LIBDIR --with-system-ffi --with-system-expat --with-ensurepip=yes || exit -1
+exit 0

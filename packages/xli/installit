@@ -1,0 +1,15 @@
+#!/bin/sh
+
+BUILDDIR=$1
+INSTALLDIR=$2
+EXTRAARGS=$3
+echo $BUILDDIR
+echo $INSTALLDIR
+echo $EXTRAARGS
+. ./setupenv.sh
+cd $BUILDDIR || exit 1
+# Just copy over the binary, the makefile attempts to do
+# ugly things like install stuff in /usr/lib/X11/Xli
+# which frankly is naughty
+cp ./xli $INSTALLDIR/bin || exit 1
+exit 0

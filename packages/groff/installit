@@ -1,0 +1,16 @@
+#!/bin/sh
+
+BUILDDIR=$1
+INSTALLDIR=$2
+EXTRAARGS=$3
+echo $BUILDDIR
+echo $INSTALLDIR
+echo $EXTRAARGS
+. ./setupenv.sh
+cd $BUILDDIR || exit -1
+cd ../build-groff
+make install || exit -1
+cd $INSTALLDIR
+cp -rf lib/* $DIDBS_LIBDIR/ || exit -1
+rm -rf ./lib || exit -1
+exit 0

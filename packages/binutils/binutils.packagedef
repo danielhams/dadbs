@@ -1,0 +1,17 @@
+packageSource=http://ftp.gnu.org/gnu/binutils/binutils-2.23.2.tar.gz
+packageFile=binutils-2.23.2.tar.gz
+packageChecksum=cda9dcc08c86ff2fd3f27e4adb250f6f
+packageDir=binutils-2.23.2
+packagePatch=binutils2_23.didbsfixes.patch
+
+packageExtraction=tarxfsystemhelper.sh
+expectedToolList=
+#dependenciesList=gbs9_0-gcc9
+dependenciesList=make,tar,xz,bzip,dejagnu,zlib
+envModifs=setupenv.sh
+configureRecipe=configureit
+buildRecipe=buildit
+installRecipe=installit
+passesChecksIndicator=1
+disabled=0
+compilers=mipspro,gcc

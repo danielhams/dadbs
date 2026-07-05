@@ -1,0 +1,16 @@
+packageSource=https://ftp.gnu.org/gnu/dejagnu/dejagnu-1.6.2.tar.gz
+packageFile=dejagnu-1.6.2.tar.gz
+packageChecksum=e1b07516533f351b3aba3423fafeffd6
+packageDir=dejagnu-1.6.2
+packagePatch=dejagnu.sgifixes.patch
+
+packageExtraction=tarxfsystemhelper.sh
+expectedToolList=
+dependenciesList=make,tar,gzip,autoconf,automake,libtool,expect
+envModifs=setupenv.sh
+configureRecipe=configureit
+buildRecipe=buildit
+installRecipe=installit
+passesChecksIndicator=1
+disabled=0
+compilers=mipspro,gcc

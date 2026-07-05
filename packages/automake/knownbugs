@@ -1,0 +1,120 @@
+===========================================
+   GNU Automake 1.16.1: ./test-suite.log
+===========================================
+
+# TOTAL: 2796
+# PASS:  2609
+# SKIP:  137
+# XFAIL: 39
+# FAIL:  11
+# XPASS: 0
+# ERROR: 0
+
+.. contents:: :depth: 2
+
+grep XFAIL:
+
+# XFAIL: 39
+      # For matching purposes, we need to adjust XFAIL_TESTS as well.
+      append_exeext { exists $known_programs{$_[0]} } 'XFAIL_TESTS'
+        if (var ('XFAIL_TESTS'));
+XFAIL: t/pm/Cond2
+XFAIL t/pm/Cond2.pl (exit status: 255)
+XFAIL: t/pm/Cond3
+XFAIL t/pm/Cond3.pl (exit status: 255)
+XFAIL: t/pm/DisjCon2
+XFAIL t/pm/DisjCon2.pl (exit status: 255)
+XFAIL: t/pm/DisjCon3
+XFAIL t/pm/DisjCon3.pl (exit status: 255)
+XFAIL: t/pm/Version2
+XFAIL t/pm/Version2.pl (exit status: 255)
+XFAIL: t/pm/Version3
+XFAIL t/pm/Version3.pl (exit status: 255)
+XFAIL: t/instspc.tap 1 - squote in builddir # TODO long-standing limitation
+XFAIL: t/instspc.tap 2 - squote in destdir # TODO long-standing limitation
+XFAIL: t/instspc.tap 3 - dquote in builddir # TODO long-standing limitation
+XFAIL: t/instspc.tap 4 - dquote in destdir # TODO long-standing limitation
+XFAIL: t/instspc.tap 5 - bquote in builddir # TODO long-standing limitation
+XFAIL: t/instspc.tap 6 - bquote in destdir # TODO long-standing limitation
+XFAIL: t/instspc.tap 7 - sharp in builddir # TODO long-standing limitation
+XFAIL: t/instspc.tap 8 - sharp in destdir # TODO long-standing limitation
+XFAIL: t/instspc.tap 9 - dollar in builddir # TODO long-standing limitation
+XFAIL: t/instspc.tap 10 - dollar in destdir # TODO long-standing limitation
+XFAIL: t/instspc.tap 13 - bslash in builddir # TODO long-standing limitation
+XFAIL: t/instspc.tap 15 - ampersand in builddir # TODO long-standing limitation
+XFAIL: t/instspc.tap 63 - linefeed in builddir # TODO long-standing limitation
+XFAIL: t/instspc.tap 64 - linefeed in destdir # TODO long-standing limitation
+XFAIL: t/instspc.tap 71 - quadrigraph0 in builddir # TODO long-standing limitation
+XFAIL: t/instspc.tap 85 - a_lf_b in builddir # TODO long-standing limitation
+XFAIL: t/instspc.tap 86 - a_lf_b in destdir # TODO long-standing limitation
+XFAIL: t/all
+XFAIL t/all.sh (exit status: 1)
+XFAIL: t/auxdir-computed.tap 2 - automake -a # TODO long-standing limitation
+XFAIL: t/auxdir-computed.tap 3 - automake # TODO long-standing limitation
+XFAIL: t/auxdir-pr19311
+XFAIL t/auxdir-pr19311.sh (exit status: 1)
+XFAIL: t/cond17
+XFAIL t/cond17.sh (exit status: 1)
+# XFAIL: 0
+# XFAIL: 0
+XFAIL: t/dist-pr109765
+XFAIL t/dist-pr109765.sh (exit status: 1)
+XFAIL: t/instdir-cond2
+XFAIL t/instdir-cond2.sh (exit status: 1)
+XFAIL: t/lex-subobj-nodep
+XFAIL t/lex-subobj-nodep.sh (exit status: 2)
+XFAIL: t/objext-pr10128
+XFAIL t/objext-pr10128.sh (exit status: 2)
+XFAIL: t/override-conditional-2
+XFAIL t/override-conditional-2.sh (exit status: 1)
+XFAIL: t/override-conditional-pr13940
+XFAIL t/override-conditional-pr13940.sh (exit status: 1)
+XFAIL: t/remake-am-pr10111
+XFAIL t/remake-am-pr10111.sh (exit status: 1)
+XFAIL: t/remake-m4-pr10111
+XFAIL t/remake-m4-pr10111.sh (exit status: 1)
+XFAIL: t/remake-timing-bug-pr8365
+XFAIL t/remake-timing-bug-pr8365.sh (exit status: 1)
+# XFAIL: 0
+XFAIL: t/tap-bad-prog.tap 5 - no spurious "missing plan" message # TODO
+# XFAIL: 0
+++ grep -c '^XFAIL:' stdout
++ grep '^# XFAIL:  *0$' stdout
+# XFAIL: 0
+XFAIL: t/tap-bad-prog.tap 6 - no spurious results # TODO still get "missing plan"
+
+grep FAIL |grep -v XFAIL:
+
+# FAIL:  11
+FAIL: t/cxx-demo
+FAIL t/cxx-demo.sh (exit status: 2)
+FAIL: t/cxx-lt-demo
+# FAIL:  0
+# FAIL:  0
+FAIL t/cxx-lt-demo.sh (exit status: 2)
+FAIL: t/lex-clean-cxx
+FAIL t/lex-clean-cxx.sh (exit status: 2)
+FAIL: t/lex-depend-cxx
+FAIL t/lex-depend-cxx.sh (exit status: 2)
+FAIL: t/subobj-pr13928-more-langs
+FAIL t/subobj-pr13928-more-langs.sh (exit status: 2)
+FAIL: t/suffix3
+FAIL: t/suffix3.tap 8 - make distcheck
++ command_ok_ '"make check" returns non-zero exit status' run_make -O -e FAIL check
++ run_make -O -e FAIL check
++ am__make_rc_exp=FAIL
+# FAIL:  0
+# FAIL:  0
+++ grep -c '^FAIL:' stdout
++ grep '^# FAIL:  *0$' stdout
+# FAIL:  0
+FAIL: t/yacc-cxx
+FAIL t/yacc-cxx.sh (exit status: 2)
+FAIL: t/yacc-bison-skeleton-cxx
+FAIL t/yacc-bison-skeleton-cxx.sh (exit status: 1)
+FAIL: t/yacc-clean-cxx
+FAIL t/yacc-clean-cxx.sh (exit status: 2)
+FAIL: t/yacc-d-cxx
+FAIL t/yacc-d-cxx.sh (exit status: 2)
+FAIL: t/yacc-mix-c-cxx
+FAIL t/yacc-mix-c-cxx.sh (exit status: 2)

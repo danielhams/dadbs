@@ -1,0 +1,16 @@
+packageSource=http://mirrorservice.org/pub/OpenBSD/OpenSSH/portable/openssh-8.1p1.tar.gz
+packageFile=openssh-8.1p1.tar.gz
+packageChecksum=513694343631a99841e815306806edf0
+packageDir=openssh-8.1p1
+packagePatch=openssh.sgifixes.patch
+
+packageExtraction=tarxfsystemhelper.sh
+expectedToolList=
+dependenciesList=make,tar,gzip,openssl,perl,zlib
+envModifs=setupenv.sh
+configureRecipe=configureit
+buildRecipe=buildit
+installRecipe=installit
+passesChecksIndicator=1
+disabled=0
+compilers=mipspro,gcc

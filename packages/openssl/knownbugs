@@ -1,0 +1,14 @@
+Version 1.1.1a - 
+
+All tests successful.
+Files=152, Tests=1355, 1124 wallclock secs (18.35 usr  1.10 sys + 960.43 cusr 145.73 csys = 1125.61 CPU)
+Result: PASS
+
+(Tests can be individually launched:
+
+[dan@leafy openssl]$ export SRCTOP=.
+[dan@leafy openssl]$ export BLDTOP=.
+[dan@leafy openssl]$ export OPENSSL_ENGINES=./engines
+[dan@leafy openssl]$ export OPENSSL_DEBUG_MEMORY=on
+[dan@leafy openssl]$ VERBOSE=yes perl test/run_tests.pl test_ct
+)

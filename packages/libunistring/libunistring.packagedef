@@ -1,0 +1,15 @@
+packageSource=https://ftp.gnu.org/gnu/libunistring/libunistring-0.9.10.tar.gz
+packageFile=libunistring-0.9.10.tar.gz
+packageChecksum=0d3274e9838396b12200f8b54ddaf43b
+packageDir=libunistring-0.9.10
+packageExtraction=tarxfsystemhelper.sh
+#packagePatch=
+expectedToolList=
+dependenciesList=make,tar,gzip,pkgconfig
+envModifs=setupenv.sh
+configureRecipe=configureit
+buildRecipe=buildit
+installRecipe=installit
+passesChecksIndicator=1
+disabled=0
+compilers=mipspro,gcc

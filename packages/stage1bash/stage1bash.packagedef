@@ -1,0 +1,15 @@
+packageSource=http://ftp.gnu.org/gnu/bash/bash-5.0.tar.gz
+packageFile=bash-5.0.tar.gz
+packageChecksum=2b44b47b905be16f45709648f671820b
+packageDir=bash-5.0
+packagePatch=bash.sgifixes.patch
+
+packageExtraction=tarxfsystemhelper.sh
+expectedToolList=
+dependenciesList=stage1libdicl,stage1make,stage1tar,stage1gzip
+envModifs=setupenv.sh
+configureRecipe=configureit
+buildRecipe=buildit
+installRecipe=installit
+passesChecksIndicator=1
+compilers=mipspro,gcc

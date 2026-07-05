@@ -1,0 +1,20 @@
+#!/bin/sh
+
+BUILDDIR=$1
+INSTALLDIR=$2
+EXTRAARGS=$3
+echo $BUILDDIR
+echo $INSTALLDIR
+echo $EXTRAARGS
+. ./setupenv.sh
+cd $BUILDDIR || exit -1
+#autoreconf
+mkdir ../build-gettext
+cd ../build-gettext
+if [ "ne$CC" == "negcc" ]; then
+    $BUILDDIR/configure --prefix=$INSTALLDIR --libdir=$INSTALLDIR/$DIDBS_LIBDIR --disable-openmp || exit -1
+else
+    $BUILDDIR/configure ac_cv_header_stdbool_h=no ac_cv_type__Bool=no --prefix=$INSTALLDIR --libdir=$INSTALLDIR/$DIDBS_LIBDIR --disable-openmp || exit -1
+fi
+
+exit 0

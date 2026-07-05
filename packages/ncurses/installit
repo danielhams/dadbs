@@ -1,0 +1,17 @@
+#!/bin/sh
+
+BUILDDIR=$1
+INSTALLDIR=$2
+EXTRAARGS=$3
+echo $BUILDDIR
+echo $INSTALLDIR
+echo $EXTRAARGS
+. ./setupenv.sh
+cd $BUILDDIR || exit -1
+make install || exit -1
+cd $INSTALLDIR/lib
+ln -s -f libncurses.so libcurses.so || exit -1
+ln -s -f libncurses++.so libcurses++.so || exit -1
+ln -s -f libncurses.a libcurses.a || exit -1
+ln -s -f libncurses++.a libcurses++.a || exit -1
+exit 0

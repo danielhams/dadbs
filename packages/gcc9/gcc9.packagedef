@@ -1,0 +1,16 @@
+packageSource=ftp://ftp.mirrorservice.org/sites/sourceware.org/pub/gcc/releases/gcc-9.2.0/gcc-9.2.0.tar.gz
+packageFile=gcc-9.2.0.tar.gz
+packageChecksum=e03739b042a14376d727ddcfd05a9bc3
+packageDir=gcc-9.2.0
+packagePatch=gcc9_2_0.sgidevfixes.patch
+
+packageExtraction=tarxfsystemhelper.sh
+expectedToolList=
+dependenciesList=gmp,mpfr,mpc,libffi,libisl,binutils
+envModifs=setupenv.sh
+configureRecipe=configureit
+buildRecipe=buildit
+installRecipe=installit
+passesChecksIndicator=1
+disabled=0
+compilers=mipspro,gcc

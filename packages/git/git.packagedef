@@ -1,0 +1,16 @@
+packageSource=https://mirrors.edge.kernel.org/pub/software/scm/git/git-2.22.0.tar.gz
+packageFile=git-2.22.0.tar.gz
+packageChecksum=6deab33485c07cb3391ea0f255a936f2
+packageDir=git-2.22.0
+packagePatch=git2_22.fixconfigshell.patch
+
+packageExtraction=tarxfsystemhelper.sh
+expectedToolList=
+dependenciesList=make,tar,xz,diffutils,grep,ncurses,bash,openssl,curl,tk,expat
+envModifs=setupenv.sh
+configureRecipe=configureit
+buildRecipe=buildit
+installRecipe=installit
+passesChecksIndicator=1
+disabled=0
+compilers=mipspro,gcc

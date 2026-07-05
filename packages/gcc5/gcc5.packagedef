@@ -1,0 +1,16 @@
+packageSource=ftp://ftp.mirrorservice.org/sites/sourceware.org/pub/gcc/releases/gcc-5.4.0/gcc-5.4.0.tar.gz
+packageFile=gcc-5.4.0.tar.gz
+packageChecksum=f2b4d5a580061711e68f0f506e402e1c
+packageDir=gcc-5.4.0
+packagePatch=gcc5_4_0.sgidevfixes.patch
+
+packageExtraction=tarxfsystemhelper.sh
+expectedToolList=
+dependenciesList=gcc9
+envModifs=setupenv.sh
+configureRecipe=configureit
+buildRecipe=buildit
+installRecipe=installit
+passesChecksIndicator=1
+disabled=1
+compilers=mipspro,gcc

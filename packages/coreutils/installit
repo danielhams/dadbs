@@ -1,0 +1,16 @@
+#!/bin/sh
+
+BUILDDIR=$1
+INSTALLDIR=$2
+EXTRAARGS=$3
+echo $BUILDDIR
+echo $INSTALLDIR
+echo $EXTRAARGS
+. ./setupenv.sh
+cd $BUILDDIR || exit -1
+make install || exit -1
+# Move the coreutils 'stty' tool which doesn't do what we'd
+# expect or want under irix
+cd $INSTALLDIR/bin || exit -1
+mv stty gcu-stty || exit -1
+exit 0

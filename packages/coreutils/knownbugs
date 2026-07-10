@@ -1,5 +1,0 @@
-misc/sort-month fail - Still errors due to what looks like locale issues
-dd/stats fail - Occasional errors - looks like signal USR1 isn't correctly propogated to the child "dd" on some test runs.
-ln/sf-1 fail - some of the name too long tests are failing
-
-Now down to three failures :-)

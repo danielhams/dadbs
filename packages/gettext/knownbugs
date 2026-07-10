@@ -1,5 +1,0 @@
-gettext-tools: OK
-
-gnulib-tests:
-
-FAIL: test-sigprocmask

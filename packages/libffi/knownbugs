@@ -1,3 +1,0 @@
-Still outstanding test failures using MIPSpro CXX. Simple solution -> move to GCC.
-
-Currently passing all with gcc.

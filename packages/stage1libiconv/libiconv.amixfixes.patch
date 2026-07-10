@@ -1,0 +1,24 @@
+diff -Naur libiconv-1.14/srclib/unistd.in.h libiconv-1.14-patched/srclib/unistd.in.h
+--- libiconv-1.14/srclib/unistd.in.h	2011-08-07 13:42:06.000000000 +0000
++++ libiconv-1.14-patched/srclib/unistd.in.h	2026-07-10 05:20:56.684812000 +0000
+@@ -1155,11 +1155,20 @@
+ #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+ #   define readlink rpl_readlink
+ #  endif
++#if defined(AMIX)
++_GL_FUNCDECL_RPL (readlink, int,
++                  (const char *file, char *buf, size_t bufsize)
++                  _GL_ARG_NONNULL ((1, 2)));
++_GL_CXXALIAS_RPL (readlink, int,
++                  (const char *file, char *buf, size_t bufsize));
++#else
+ _GL_FUNCDECL_RPL (readlink, ssize_t,
+                   (const char *file, char *buf, size_t bufsize)
+                   _GL_ARG_NONNULL ((1, 2)));
+ _GL_CXXALIAS_RPL (readlink, ssize_t,
+                   (const char *file, char *buf, size_t bufsize));
++#endif
++
+ # else
+ #  if !@HAVE_READLINK@
+ _GL_FUNCDECL_SYS (readlink, ssize_t,

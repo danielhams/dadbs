@@ -1,0 +1,16 @@
+packageSource=http://ftp.gnu.org/gnu/make/make-3.80.tar.gz
+packageFile=make-3.80.tar.gz
+packageChecksum=c68540da9302a48068d5cce1f0099477
+packageDir=make-3.80
+# No patch needed
+#packagePatch=make.amixfixes.patch
+
+packageExtraction=guntarsystemhelper.sh
+expectedToolList=
+dependenciesList=
+envModifs=setupenv.sh
+configureRecipe=configureit
+buildRecipe=buildit
+installRecipe=installit
+passesChecksIndicator=1
+compilers=gcc

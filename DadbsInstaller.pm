@@ -1,6 +1,6 @@
-package DidbsInstaller;
+package DadbsInstaller;
 
-use DidbsUtils;
+use DadbsUtils;
 
 sub new
 {
@@ -11,10 +11,10 @@ sub new
     my $packageDir = shift;
     my $buildDir = shift;
     my $installDir = shift;
-    my $didbsPackage = shift;
-    my $didbsExtractor = shift;
-    my $didbsPatcher = shift;
-    my $didbsConfigurator = shift;
+    my $dadbsPackage = shift;
+    my $dadbsExtractor = shift;
+    my $dadbsPatcher = shift;
+    my $dadbsConfigurator = shift;
 
     $self->{scriptLocation} = $scriptLocation;
     $self->{packageDefsDir} = $packageDefsDir;
@@ -22,10 +22,10 @@ sub new
     $self->{packageDir} = $packageDir;
     $self->{buildDir} = $buildDir;
     $self->{installDir} = $installDir;
-    $self->{didbsPackage} = $didbsPackage;
-    $self->{didbsExtractor} = $didbsExtractor;
-    $self->{didbsPatcher} = $didbsPatcher;
-    $self->{didbsConfigurator} = $didbsConfigurator;
+    $self->{dadbsPackage} = $dadbsPackage;
+    $self->{dadbsExtractor} = $dadbsExtractor;
+    $self->{dadbsPatcher} = $dadbsPatcher;
+    $self->{dadbsConfigurator} = $dadbsConfigurator;
 
     return $self;
 }
@@ -34,27 +34,27 @@ sub installit
 {
     my $self = shift;
     my $packageId = $self->{packageId};
-    didbsprint "Installing $packageId\n";
+    dadbsprint "Installing $packageId\n";
 
-    my $builddir = "$self->{buildDir}/$self->{packageId}/$self->{didbsPackage}->{packageDir}";
+    my $builddir = "$self->{buildDir}/$self->{packageId}/$self->{dadbsPackage}->{packageDir}";
     my $installdir = $self->{installDir};
-    didbsprint "Build is in $builddir\n";
+    dadbsprint "Build is in $builddir\n";
     my $extraargs;
     if( begins_with($packageId,"stage1") )
     {
-	$extraargs="/usr/didbs/current";
+	$extraargs="/usr/dadbs/current";
     }
     else
     {
 	$extraargs="";
     }
     my $packageDefDir = $self->{packageDefsDir} . "/" . $packageId;
-    didbsprint "Changing directory to $packageDefDir\n";
+    dadbsprint "Changing directory to $packageDefDir\n";
     chdir $packageDefDir;
 
-    my $installRecipe = "$self->{packageDefsDir}/$self->{packageId}/$self->{didbsPackage}->{installRecipe}";
+    my $installRecipe = "$self->{packageDefsDir}/$self->{packageId}/$self->{dadbsPackage}->{installRecipe}";
     my $cmd = "$installRecipe $builddir $installdir $extraargs";
-    didbsprint "About to execute $cmd\n";
+    dadbsprint "About to execute $cmd\n";
     system($cmd) == 0 || die $!;
 
     return 1;
@@ -63,7 +63,7 @@ sub installit
 sub debug
 {
     my $self = shift;
-    didbsprint "DidbsInstaller constructed for $self->{packageId}\n";
+    dadbsprint "DadbsInstaller constructed for $self->{packageId}\n";
 }
 
 1;

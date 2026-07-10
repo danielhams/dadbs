@@ -1,0 +1,19 @@
+#!/usr/gnutc/bin/sh
+
+BUILDDIR=$1
+INSTALLDIR=$2
+EXTRAARGS=$3
+echo $BUILDDIR
+echo $INSTALLDIR
+echo $EXTRAARGS
+. ./setupenv.sh
+cd $BUILDDIR || exit -1
+
+# Early exit for patch generation
+exit 1
+
+# Package has been patched for c89 - but the autotools stuff still looks for
+# c99 - tell it not to look
+ac_cv_prog_cc_c99= $SHELL ./configure --prefix=$INSTALLDIR --disable-threads --enable-assume-ram=32 || exit -1
+
+exit 0

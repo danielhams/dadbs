@@ -1,0 +1,6 @@
+/usr/dadbsbootstrap/lib/perl5/5.00503/man/man3/Digest::SHA.3
+/usr/dadbsbootstrap/man/man1/shasum.1
+/usr/dadbsbootstrap/src/dadbs/bin/shasum
+/usr/dadbsbootstrap/src/dadbs/lib/Digest/SHA.pm
+/usr/dadbsbootstrap/src/dadbs/lib/auto/Digest/SHA/SHA.bs
+/usr/dadbsbootstrap/src/dadbs/lib/auto/Digest/SHA/SHA.so

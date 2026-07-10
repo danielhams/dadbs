@@ -1,9 +1,9 @@
-package DidbsPackageHasher;
+package DadbsPackageHasher;
 
 use Digest::SHA;
 use File::Basename;
 
-use DidbsUtils;
+use DadbsUtils;
 
 sub new
 {
@@ -16,14 +16,12 @@ sub new
 
 sub calculateEnvHash
 {
-    my ($envFile, $supEnvFile, $elfwidth, $isa, $compiler) = (@_);
+    my ($envFile, $supEnvFile, $compiler) = (@_);
 
-    # Compute a sha256 sum of the contents of the package def dir
-    my $envSha = Digest::SHA->new("sha256");
+    # Compute a sha1 sum of the contents of the package def dir
+    my $envSha = Digest::SHA->new("sha1");
     $envSha->addfile($envFile);
     $envSha->addfile($supEnvFile);
-    $envSha->add($elfwidth);
-    $envSha->add($isa);
     $envSha->add($compiler);
     return $envSha->b64digest;
 }
@@ -32,8 +30,8 @@ sub calculatePackageDefHash
 {
     my ($verbose, $packageDefDir) = (@_);
 
-    # Compute a sha256 sum of the contents of the package def dir
-    my $packageSha = Digest::SHA->new("sha256");
+    # Compute a sha1 sum of the contents of the package def dir
+    my $packageSha = Digest::SHA->new("sha1");
     my @PKGFILES = glob "$packageDefDir/*";
     chomp(@PKGFILES);
     for (@PKGFILES)
@@ -51,7 +49,7 @@ sub calculatePackageDefHash
 sub calculateEnvPacDepHash
 {
     my ($envHash, $packageDefHash, $dependencyHashesRef) = (@_);
-    my $packageSha = Digest::SHA->new("sha256");
+    my $packageSha = Digest::SHA->new("sha1");
 
     $packageSha->add($envHash);
     $packageSha->add($packageDefHash);

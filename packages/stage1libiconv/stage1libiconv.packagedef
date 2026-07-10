@@ -1,0 +1,16 @@
+packageSource=http://ftp.gnu.org/gnu/libiconv/libiconv-1.14.tar.gz
+packageFile=libiconv-1.14.tar.gz
+packageChecksum=e34509b1623cec449dfeb73d7ce9c6c6
+packageDir=libiconv-1.14
+
+packagePatch=libiconv.amixfixes.patch
+packageExtraction=tarxfsystemhelper.sh
+expectedToolList=
+dependenciesList=stage1make,stage1tar,stage1xz,stage1perl
+envModifs=setupenv.sh
+configureRecipe=configureit
+buildRecipe=buildit
+installRecipe=installit
+passesChecksIndicator=1
+disabled=0
+compilers=gcc

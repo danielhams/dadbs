@@ -1,0 +1,13 @@
+diff -Naur gawk-3.1.8/protos.h gawk-3.1.8-patch/protos.h
+--- gawk-3.1.8/protos.h	2007-08-11 19:39:49.000000000 +0000
++++ gawk-3.1.8-patch/protos.h	2026-06-14 08:24:18.000000000 +0000
+@@ -108,7 +108,9 @@
+ extern int pipe P((int *));
+ extern int dup P((int));
+ extern int dup2 P((int,int));
++#if !defined(AMIX)
+ extern int fork P(());
++#endif
+ extern int execl P((const char *, const char *, ...));
+ #ifndef __STDC__
+ extern int read P((int, void *, unsigned int));

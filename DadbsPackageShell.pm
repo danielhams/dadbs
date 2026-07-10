@@ -1,6 +1,6 @@
-package DidbsPackageShell;
+package DadbsPackageShell;
 
-use DidbsUtils;
+use DadbsUtils;
 
 sub new
 {
@@ -11,7 +11,7 @@ sub new
     my $packageDir = shift;
     my $buildDir = shift;
     my $installDir = shift;
-    my $didbsPackage = shift;
+    my $dadbsPackage = shift;
 
     $self->{scriptLocation} = $scriptLocation;
     $self->{packageDefsDir} = $packageDefsDir;
@@ -19,7 +19,7 @@ sub new
     $self->{packageDir} = $packageDir;
     $self->{buildDir} = $buildDir;
     $self->{installDir} = $installDir;
-    $self->{didbsPackage} = $didbsPackage;
+    $self->{dadbsPackage} = $dadbsPackage;
 
     return $self;
 }
@@ -27,26 +27,26 @@ sub new
 sub debug
 {
     my $self = shift;
-    didbsprint "DidbsPackageShell constructed for $self->{packageId}\n";
-    didbsprint "scriptLocation $self->{scriptLocation}\n";
-    didbsprint "packageDefsDir $self->{packageDefsDir}\n";
-    didbsprint "packageId $self->{packageId}\n";
-    didbsprint "packageDir $self->{packageDir}\n";
-    didbsprint "buildDir $self->{buildDir}\n";
-    didbsprint "installDir $self->{installDir}\n";
-    didbsprint "didbsPackage $self->{didbsPackage}\n";
+    dadbsprint "DadbsPackageShell constructed for $self->{packageId}\n";
+    dadbsprint "scriptLocation $self->{scriptLocation}\n";
+    dadbsprint "packageDefsDir $self->{packageDefsDir}\n";
+    dadbsprint "packageId $self->{packageId}\n";
+    dadbsprint "packageDir $self->{packageDir}\n";
+    dadbsprint "buildDir $self->{buildDir}\n";
+    dadbsprint "installDir $self->{installDir}\n";
+    dadbsprint "dadbsPackage $self->{dadbsPackage}\n";
 }
 
 sub startshell
 {
     my $self = shift;
     my $packageId = $self->{packageId};
-    didbsprint "Package shell for $packageId\n";
+    dadbsprint "Package shell for $packageId\n";
 
     my $scriptLocation = $self->{scriptLocation};
     my $packageId = $self->{packageId};
     my $packageDirRoot = $self->{packageDir};
-    my $didbsPackageDir = ${$self->{didbsPackage}}->{packageDir};
+    my $dadbsPackageDir = ${$self->{dadbsPackage}}->{packageDir};
     my $packageDefsDir = $self->{packageDefsDir};
     my $packageDir = $packageDefsDir . "/" . $packageId;
     my $builddir = $self->{buildDir};
@@ -55,33 +55,33 @@ sub startshell
 	"/" .
 	$packageId .
 	"/" .
-	$didbsPackageDir;
+	$dadbsPackageDir;
 
     my $installdir = $self->{installDir};
 
     my $envmodifs = $packageDir . "/" .
-	${$self->{didbsPackage}}->{envModifs};
-    didbsprint "scriptLocation is $scriptLocation\n";
-    didbsprint "packageId is $packageId\n";
-    didbsprint "packageDir is $packageDir\n";
-    didbsprint "packageBuildDir is $packageBuildDir\n";
-    didbsprint "didbsPackageDir is $didbsPackageDir\n";
-    didbsprint "builddir is $builddir\n";
-    didbsprint "installdir is $installdir\n";
+	${$self->{dadbsPackage}}->{envModifs};
+    dadbsprint "scriptLocation is $scriptLocation\n";
+    dadbsprint "packageId is $packageId\n";
+    dadbsprint "packageDir is $packageDir\n";
+    dadbsprint "packageBuildDir is $packageBuildDir\n";
+    dadbsprint "dadbsPackageDir is $dadbsPackageDir\n";
+    dadbsprint "builddir is $builddir\n";
+    dadbsprint "installdir is $installdir\n";
 
     # Need
     # script path
-    # root of didbs (scriptLocation)
+    # root of dadbs (scriptLocation)
     # packageID
     # path to dibs package config
     # path to root of package build
     # install path
 
     my $cmd = "$scriptLocation/scripts/buildshell.sh $scriptLocation $packageId $packageDir $packageBuildDir $installdir $envmodifs";
-#    didbsprint "About to execute $cmd\n";
+#    dadbsprint "About to execute $cmd\n";
     if( system($cmd) != 0 )
     {
-	didbsprint "Failed during shell invocation: $!\n";
+	dadbsprint "Failed during shell invocation: $!\n";
 	die $!;
     }
 

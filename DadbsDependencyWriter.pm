@@ -1,6 +1,6 @@
-package DidbsDependencyWriter;
+package DadbsDependencyWriter;
 
-use DidbsUtils;
+use DadbsUtils;
 
 sub new
 {
@@ -21,7 +21,7 @@ sub new
 sub writeDependencies
 {
     my $self = shift;
-    didbsprint "Writing dependency .dot and .csv\n";
+    dadbsprint "Writing dependency .dot and .csv\n";
 
     @foundPackages = @{$self->{foundPackagesRef}};
     %pkgStates = %{$self->{packageStatesRef}};
@@ -67,9 +67,9 @@ sub writeDependencies
     }
 
     open(DOT_OUT, '>'.$self->{scriptLocation}."/deps.dot") || die $!;
-    my $didbsversion = $self->{version};
+    my $dadbsversion = $self->{version};
     printf DOT_OUT <<EOF_HEADER;
-    strict digraph didbs_deps {
+    strict digraph dadbs_deps {
     graph [ ratio="0.7 compressed",
         rankdir="RL",
         ranksep=0.75,
@@ -88,8 +88,8 @@ sub writeDependencies
     edge [
         ];
 
-    subgraph "cluster_didbs" {
-        label="Didbs $didbsversion";
+    subgraph "cluster_dadbs" {
+        label="Dadbs $dadbsversion";
         style=filled;
         color=ivory3;
 EOF_HEADER

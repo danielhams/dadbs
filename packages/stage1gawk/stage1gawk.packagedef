@@ -1,0 +1,14 @@
+packageSource=http://ftp.gnu.org/gnu/gawk/gawk-3.1.8.tar.bz2
+packageFile=gawk-3.1.8.tar.bz2
+packageChecksum=52b41c6c4418b3226dfb8f82076193bb
+packageExtraction=tarxfsystemhelper.sh
+packageDir=gawk-3.1.8
+packagePatch=gawk.amixfixes.patch
+expectedToolList=
+dependenciesList=stage1make,stage1tar,stage1xz
+envModifs=setupenv.sh
+configureRecipe=configureit
+buildRecipe=buildit
+installRecipe=installit
+passesChecksIndicator=1
+compilers=gcc

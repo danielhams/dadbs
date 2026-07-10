@@ -1,0 +1,15 @@
+packageSource=http://ftp.gnu.org/gnu/bash/bash-3.0.tar.gz
+packageFile=bash-3.0.tar.gz
+packageChecksum=26c4d642e29b3533d8d754995bc277b3
+packageDir=bash-3.0
+packagePatch=bash3.amixfixes.patch
+
+packageExtraction=tarxfsystemhelper.sh
+expectedToolList=
+dependenciesList=stage1make,stage1tar,stage1gzip
+envModifs=setupenv.sh
+configureRecipe=configureit
+buildRecipe=buildit
+installRecipe=installit
+passesChecksIndicator=1
+compilers=gcc

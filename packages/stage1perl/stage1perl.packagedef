@@ -1,0 +1,14 @@
+packageSource=ftp://ftp.cpan.org/pub/CPAN/src/perl5.005_03.tar.gz
+packageFile=perl5.005_03.tar.gz
+packageChecksum=427890d97e32430341c1fa80f55277a7
+packageDir=perl5.005_03
+packagePatch=perl.amixfixes.patch
+packageExtraction=tarxfsystemhelper.sh
+expectedToolList=
+dependenciesList=stage1make,stage1tar,stage1gzip,stage1sed,stage1grep
+envModifs=setupenv.sh
+configureRecipe=configureit
+buildRecipe=buildit
+installRecipe=installit
+passesChecksIndicator=1
+compilers=gcc

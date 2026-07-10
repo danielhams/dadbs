@@ -7,13 +7,14 @@ echo $SCRIPTLOCATION;
 echo $DESTDIR;
 echo $SOURCEURL;
 cd $DESTDIR || exit -1;
-# We can use the "/usr/didbs/current/bin/wget" now,
-# which includes recent cacerts, so now it will properly check.
-# No more statically linked wget skipping certs.
+# We will eventually be able to use the "/usr/dadbs/current/bin/wget",
+# but for now it's not there.
 
-# wget currently broken in 0.1.7 - courtesy thor
-# this can be worked around by using curl
+# if wget cannot be made to work - potentially
+# we can use curl instead
+echo "NO SUPPORTED WGET HELPER YET!"
+exit 1;
 #wget $SOURCEURL || exit -1;
-curl -s -L -O $SOURCEURL || exit -1;
+#curl -s -L -O $SOURCEURL || exit -1;
 
 exit 0;

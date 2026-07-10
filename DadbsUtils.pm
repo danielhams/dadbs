@@ -1,4 +1,4 @@
-package DidbsUtils;
+package DadbsUtils;
 use POSIX;
 use Exporter;
 use IO::Handle;
@@ -7,14 +7,14 @@ use Cwd 'abs_path';
 use Time::HiRes qw(gettimeofday);
 
 @ISA = ('Exporter');
-@EXPORT=('mkdirp','sumfile','begins_with','didbsprint','checkdidbscompatiblesetup');
+@EXPORT=('mkdirp','sumfile','begins_with','dadbsprint','checkdadbscompatiblesetup');
 
 use File::Basename;
 
 # Tweak to 1 to see date/time output
 my $useTimestamps=1;
 
-sub didbsprint
+sub dadbsprint
 {
     my @args = @_;
     if($useTimestamps) {
@@ -24,7 +24,7 @@ sub didbsprint
 	my $micros = $microst%1000;
 #	my $subsecstr = sprintf ".%0.3d.%0.3d", $millis, $micros;
 	my $subsecstr = sprintf ".%0.3d", $millis;
-	print strftime("%F %T",localtime) . $subsecstr . " ";
+	print strftime("%Y-%m-%d %T",localtime) . $subsecstr . " ";
     }
     print @args;
 }
@@ -41,15 +41,15 @@ sub sumfile
 {
     my $scriptLocation=shift;
     my $filename=shift;
-    # This should use the md5sum from /usr/didbs/current/bin
+    # This should use the md5sum from current path
     $dsum = "md5sum";
 
     my $digest = `$dsum $filename`;
     chomp($digest);
 
-#    didbsprint "Digest result is $digest\n";
+#    dadbsprint "Digest result is $digest\n";
     (my $extracteddigest = $digest ) =~ s/^(\S+)\s+.*$/$1/g;
-#    didbsprint "Pulled out $extracteddigest\n";
+#    dadbsprint "Pulled out $extracteddigest\n";
 
     return $extracteddigest;
 }
@@ -60,77 +60,68 @@ sub begins_with
 }
 
 # Verify that:
-
-# systune ncargs >= 131072
-
-# and
-
-# We have an existing didbs versions is installed and available
-# as /usr/didbs/current
+# We have an existing dadbs versions is installed and available
+# as /usr/dadbs/current
 # So we verify that
-# (1) /usr/didbs/current _is_ a symbolic link
+# (1) /usr/dadbs/current _is_ a symbolic link
 # (2) That the underlying directory is version >= 0.1.3 < current version
-# (3) That it is an "n32" and "mips3" installation
-# (4) That all the gccs we expect are present (makes sure it is didbs)
-sub checkdidbscompatiblesetup
+# (3) That the gcc we expect is present (needs to be dadbs built 2.95.3 due to Motorola ABI compatibility)
+sub checkdadbscompatiblesetup
 {
     my $retVal=1;
     my $verbose=shift;
-    my $didbscompiler=shift;
+    my $dadbscompiler=shift;
     my $version=shift;
-    my $ncargsval = `systune ncargs |cut -d \" \" -f 4`;
-    $verbose && print "systune ncargs=$ncargsval\n";
-    my $ncargsok = ($ncargsval >= 131072);
-    $retVal = $retVal && $ncargsok;
-    if( !ncargsok ) {
-	print "Failed systune ncargs check\n";
-	return $retval;;
-    }
+    
+    # Just exit with error for now, we'll fix the generational checks once
+    # we have a stable generation to check on.
+    dadbsprint "Current compatability checking is broken and needs fixing...";
+    return $retVal;
     my($scriptMajVer,$scriptGenVer,$scriptMinVer) =
 	    $version =~ m/(\d)\.(\d)\.(\d)(.*)/;
-    $verbose && didbsprint "Checking for /usr/didbs/current symbolic link..";
-    my $linkIsOk = (-e '/usr/didbs/current' && -l '/usr/didbs/current');
+    $verbose && dadbsprint "Checking for /usr/dadbs/current symbolic link..";
+    my $linkIsOk = (-e '/usr/dadbs/current' && -l '/usr/dadbs/current');
     $verbose && print "$linkIsOk\n";
     $retVal = $retVal && $linkIsOk;
     if( !$linkIsOk ) {
 	return $retVal;
     }
-    $verbose && didbsprint "Checking underlying dir is compatible version..";
-    my $dirBehindLink = abs_path('/usr/didbs/current');
+    $verbose && dadbsprint "Checking underlying dir is compatible version..";
+    my $dirBehindLink = abs_path('/usr/dadbs/current');
     my $dirIsOk=0;
     if( defined($dirBehindLink) && -e $dirBehindLink ) {
-	$verbose && didbsprint "dirBehindLink is $dirBehindLink\n";
+	$verbose && dadbsprint "dirBehindLink is $dirBehindLink\n";
 	my($dirMajVer,$dirGenVer,$dirMinVer,$dirRest) =
 	    $dirBehindLink =~ m/(\d)_(\d)_(\d)[^_]*(_.+)/;
-	$verbose && didbsprint "Matched $dirMajVer $dirGenVer $dirMinVer $dirRest\n";
+	$verbose && dadbsprint "Matched $dirMajVer $dirGenVer $dirMinVer $dirRest\n";
 	my $expectedWidthIsaCompiler = "_n32_mips3_" . 
-	    ($didbscompiler eq "gcc" ? "gcc" : "mp");
+	    ($dadbscompiler eq "gcc" ? "gcc" : "mp");
 	if( rindex($dirRest,$expectedWidthIsaCompiler) == 0 ) {
-	    $verbose && didbsprint "Elf width, ISA, Compiler OK\n";
+	    $verbose && dadbsprint "Elf width, ISA, Compiler OK\n";
 	    # Version check min is 0.1.7 (starting from 0.1.7)
-	    # due to the need for a particular didbs perl version.
+	    # due to the need for a particular dadbs perl version.
 	    # max is current script minus one
 	    if( ($dirMajVer > 0)
 		||
 		($dirGenVer > 1)
 		||
 		($dirMinVer >= 7 ) ) {
-#		didbsprint "Min version check ok\n";
+#		dadbsprint "Min version check ok\n";
 		# Check the version is less or the same
 		if( ($dirMajVer < $scriptMajVer)
 		    ||
 		    ($dirMajVer == $scriptMajVer && $dirGenVer < $scriptGenVer)
 		    ||
 		    ($dirMajVer == $scriptMajVer && $dirGenVer == $scriptGenVer && $dirMinVer <= $scriptMinVer ) ) {
-#		    didbsprint "Max version check ok\n";
+#		    dadbsprint "Max version check ok\n";
 		    $dirIsOk=1;
 		}
 		else {
-		    $verbose && didbsprint "Max version test failure!\n";
+		    $verbose && dadbsprint "Max version test failure!\n";
 		}
 	    }
 	    else {
-		$verbose && didbsprint "Min version test failure!\n";
+		$verbose && dadbsprint "Min version test failure!\n";
 	    }
 	}
     }
@@ -139,12 +130,12 @@ sub checkdidbscompatiblesetup
     if( !$dirIsOk ) {
 	return $retVal;
     }
-    # Final check, is it really didbs there...
+    # Final check, is it really dadbs there...
     # Check there are gccs under the right dirs
-    $verbose && didbsprint "Checking for needed gccs..";
+    $verbose && dadbsprint "Checking for needed gccs..";
     my $gccsAreOk=0;
     if(
-	-e '/usr/didbs/current/bin/gcc'
+	-e '/usr/dadbs/current/bin/gcc'
 	) {
 	$gccsAreOk=1;
     }

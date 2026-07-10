@@ -1,6 +1,6 @@
-package DidbsStageChecker;
+package DadbsStageChecker;
 
-use DidbsUtils;
+use DadbsUtils;
 
 use constant PACKAGESTAGE => qw(BUILD);
 
@@ -19,12 +19,12 @@ sub new
 
     # Check to see what certain "stage" files exist
 
-    my $stageEnvString = $ENV{"DIDBS_STAGE"};
+    my $stageEnvString = $ENV{"DADBS_STAGE"};
     $self->{stageString} = defined($stageEnvString) ? $stageEnvString : "BUILD";
 
     $self->{missingStageString} = $self->calcMissingStage();
 
-    didbsprint "Setting missing stage to $self->{missingStageString}\n";
+    dadbsprint "Setting missing stage to $self->{missingStageString}\n";
 
     return $self;
 }
@@ -55,7 +55,7 @@ sub getStageAdjustedPackageDefDir()
 
 sub calcMissingStage
 {
-    # We rely on a previous didbs release now for "stage0" binaries
+    # We rely on a previous dadbs release now for "stage0" binaries
     return undef;
 }
 
@@ -83,31 +83,23 @@ sub prependEnvVarPath
 	}
     my $newValue = $ENV{$envVarName};
 
-    didbsprint "Reset $envVarName from $prevValue to $newValue\n";
+    dadbsprint "Reset $envVarName from $prevValue to $newValue\n";
 }
 
 sub modifyPathForCurrentStage
 {
     my $self = shift;
     my $envRef = shift;
-    didbsprint "Modifying path for stage '$self->{stageString}' ...\n";
+    dadbsprint "Modifying path for stage '$self->{stageString}' ...\n";
 
     my $extraBinPath = $self->getStageAdjustedInstallDir() . "/bin";
     $self->prependEnvVarPath("PATH", $extraBinPath);
     my $extraLibPath;
     my $extraPkgConfigPath;
 
-    if( $ENV{"DIDBS_LIBDIR"} eq "lib32" ) {
-	$extraLibPath = $self->getStageAdjustedInstallDir() . "/lib32";
-	$self->prependEnvVarPath("LD_LIBRARYN32_PATH", $extraLibPath);
-	$extraPkgConfigPath = $self->getStageAdjustedInstallDir() . "/lib32/pkgconfig";
-    }
-    else {
-	$extraLibPath = $self->getStageAdjustedInstallDir() . "/lib64";
-	$self->prependEnvVarPath("LD_LIBRARYN64_PATH", $extraLibPath);
-	$extraPkgConfigPath = $self->getStageAdjustedInstallDir() . "/lib64/pkgconfig";
-    }
+    $extraLibPath = $self->getStageAdjustedInstallDir() . "/lib";
     $self->prependEnvVarPath("LD_LIBRARY_PATH", $extraLibPath);
+    $extraPkgConfigPath = $self->getStageAdjustedInstallDir() . "/lib/pkgconfig";
     $self->prependEnvVarPath("PKG_CONFIG_PATH", $extraPkgConfigPath);
 }
 

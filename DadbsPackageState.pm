@@ -1,9 +1,9 @@
-package DidbsPackageState;
+package DadbsPackageState;
 
 use File::Basename;
 
-use DidbsUtils;
-use DidbsPackageHasher;
+use DadbsUtils;
+use DadbsPackageHasher;
 
 use constant PACKAGESTATE => qw(UNCHECKED UNFETCHED FETCHED SIGCHECKED EXTRACTED PATCHED CONFIGURED BUILT INSTALLED OUTOFDATE);
 
@@ -16,21 +16,21 @@ sub new
     $self->{v} = $verbose;
     my $scriptLocation = shift;
     my $packageDefsDir = shift;
-    my $didbsEnvHash = shift;
+    my $dadbsEnvHash = shift;
     my $packageId = shift;
     my $packageDir = shift;
     my $buildDir = shift;
     my $installDir = shift;
-    my $didbsPackage = shift;
+    my $dadbsPackage = shift;
     my $foundPackageStatesRef = shift;
 
     $self->{scriptLocation} = $scriptLocation;
-    $self->{didbsEnvHash} = $didbsEnvHash;
+    $self->{dadbsEnvHash} = $dadbsEnvHash;
     $self->{packageId} = $packageId;
     $self->{packageDir} = $packageDir;
     $self->{buildDir} = $buildDir;
     $self->{installDir} = $installDir;
-    $self->{didbsPackage} = $didbsPackage;
+    $self->{dadbsPackage} = $dadbsPackage;
 
     $self->{stateString} = UNCHECKED;
 
@@ -40,13 +40,13 @@ sub new
     my $packageDefDate = lastModTimestampOfPackage(
 	$packageDefPath, $packageDefFile );
 
-    my $installedFile = "$installDir/didbsversions/$packageId.installed";
+    my $installedFile = "$installDir/dadbsversions/$packageId.installed";
     $self->{installedFileName} = $installedFile;
 
     my $installedDate = lastModTimestampOrZero( $installedFile );
     $self->{installedDate} = $installedDate;
 
-    my $packageDefHash = DidbsPackageHasher::calculatePackageDefHash( $self->{v}, $packageDefPath );
+    my $packageDefHash = DadbsPackageHasher::calculatePackageDefHash( $self->{v}, $packageDefPath );
     $self->{packageDefHash} = $packageDefHash;
     # Now build the "envPacDepHash" (environment, package, dependencies)
     # If this matches the value stored on the disk, this package is up
@@ -54,7 +54,7 @@ sub new
     # If it doesn't match, this package needs building.
     my @dependencyHashes = calculateDependencyHashes(
 	$self,
-	$didbsPackage,
+	$dadbsPackage,
 	$foundPackageStatesRef );
 
 #    for( @dependencyHashes )
@@ -62,8 +62,8 @@ sub new
 #	print "Found a dependency hash: $_\n";
 #	exit 1;
 #    }
-    my $envPacDepHash = DidbsPackageHasher::calculateEnvPacDepHash(
-	$didbsEnvHash,
+    my $envPacDepHash = DadbsPackageHasher::calculateEnvPacDepHash(
+	$dadbsEnvHash,
 	$packageDefHash,
 	\@dependencyHashes );
 
@@ -71,30 +71,30 @@ sub new
 
     my $mostRecentDependencyDate = calculateMostRecentDependencyDate(
 	$self,
-	$didbsPackage,
+	$dadbsPackage,
 	$installedDate,
 	$foundPackageStatesRef );
 
-    (!$useHashes) && $self->{v} && didbsprint "Package def date is $packageDefDate\n";
-    $self->{v} && didbsprint "Package def hash is $packageDefHash\n";
-    $self->{v} && didbsprint "Package epdh     is $envPacDepHash\n";
-    (!$useHashes) && $self->{v} && didbsprint "Package installed date is $installedDate\n";
-    (!$useHashes) && $self->{v} && didbsprint "Package most recent dep date is $mostRecentDependencyDate\n";
+    (!$useHashes) && $self->{v} && dadbsprint "Package def date is $packageDefDate\n";
+    $self->{v} && dadbsprint "Package def hash is $packageDefHash\n";
+    $self->{v} && dadbsprint "Package epdh     is $envPacDepHash\n";
+    (!$useHashes) && $self->{v} && dadbsprint "Package installed date is $installedDate\n";
+    (!$useHashes) && $self->{v} && dadbsprint "Package most recent dep date is $mostRecentDependencyDate\n";
 
     if( $useHashes ) {
 	if (! -e $installedFile) {
-	    $self->{v} && didbsprint "Package $packageId not yet installed.\n";
+	    $self->{v} && dadbsprint "Package $packageId not yet installed.\n";
 	    $self->{stateString} = UNFETCHED;
 	}
 	else {
 	    my $installedEnvPacDepHash = readHashFromInstalledFile($installedFile);
 #	    print "Read installed envpacdephash of $installedEnvPacDepHash\n";
 	    if( $installedEnvPacDepHash eq $envPacDepHash ) {
-		$self->{v} && didbsprint "Package $packageId is up to date.\n";
+		$self->{v} && dadbsprint "Package $packageId is up to date.\n";
 		$self->{stateString} = INSTALLED;
 	    }
 	    else {
-		$self->{v} && didbsprint "Package $packageId out of date.\n";
+		$self->{v} && dadbsprint "Package $packageId out of date.\n";
 		$self->{stateString} = OUTOFDATE;
 	    }
 	}
@@ -102,18 +102,18 @@ sub new
     else {
 	if( $installedDate == 0 )
 	{
-	    $self->{v} && didbsprint "Package $packageId not yet installed.\n";
+	    $self->{v} && dadbsprint "Package $packageId not yet installed.\n";
 	    $self->{stateString} = UNFETCHED;
 	}
 	elsif( $installedDate lt $packageDefDate ||
 	       $installedDate lt $mostRecentDependencyDate )
 	{
-	    $self->{v} && didbsprint "Package $packageId out of date.\n";
+	    $self->{v} && dadbsprint "Package $packageId out of date.\n";
 	    $self->{stateString} = OUTOFDATE;
 	}
 	else
 	{
-	    $self->{v} && didbsprint "Package $packageId is up to date.\n";
+	    $self->{v} && dadbsprint "Package $packageId is up to date.\n";
 	    $self->{stateString} = INSTALLED;
 	}
     }
@@ -130,7 +130,7 @@ sub lastModTimestamp
 
     if( ! -e $fn )
     {
-	didbsprint "Expected file $fn missing.\n";
+	dadbsprint "Expected file $fn missing.\n";
 	exit 1;
     }
 
@@ -153,7 +153,7 @@ sub lastModTimestampOfPackage
 {
     (my $pkgDefPath, $pkgDefFile ) = (@_);
     my $newestLastModTimestamp = lastModTimestamp($pkgDefFile);
-    $self->{v} && didbsprint "For $pkgDefFile lmt = $newestLastModTimestamp\n";
+    $self->{v} && dadbsprint "For $pkgDefFile lmt = $newestLastModTimestamp\n";
 
     # Walk all files under the package def path
     # Checking if any are newer
@@ -166,14 +166,14 @@ sub lastModTimestampOfPackage
     {
 	my $pkgHelperFile = basename($fullPathPkgHelperFile);
 	my $pkgHelperLmt = lastModTimestamp($pkgDefPath."/".$pkgHelperFile);
-	$self->{v} && didbsprint "For helper file $pkgHelperFile lmt = $pkgHelperLmt\n";
+	$self->{v} && dadbsprint "For helper file $pkgHelperFile lmt = $pkgHelperLmt\n";
 	if( $pkgHelperLmt gt $newestLastModTimestamp )
 	{
 	    $newestLastModTimestamp = $pkgHelperLmt;
-	    $self->{v} && didbsprint "Helper file $pkgHelperFile is NEWER ($pkgHelperLmt).\n";
+	    $self->{v} && dadbsprint "Helper file $pkgHelperFile is NEWER ($pkgHelperLmt).\n";
 	}
     }
-    $self->{v} && didbsprint "For $pkgDefFile returning $newestLastModTimestamp\n";
+    $self->{v} && dadbsprint "For $pkgDefFile returning $newestLastModTimestamp\n";
 
     return $newestLastModTimestamp;
 }
@@ -181,7 +181,7 @@ sub lastModTimestampOfPackage
 sub debug
 {
     my $self = shift;
-    didbsprint "DidbsPackageState for $self->{packageId} is $self->{stateString}\n";
+    dadbsprint "DadbsPackageState for $self->{packageId} is $self->{stateString}\n";
 }
 
 sub setState
@@ -189,12 +189,12 @@ sub setState
     my $self = shift;
     my $newstate = shift;
     $self->{stateString} = $newstate;
-    didbsprint "Package $self->{packageId} is now in state $newstate\n";
+    dadbsprint "Package $self->{packageId} is now in state $newstate\n";
 
     if( $newstate eq INSTALLED )
     {
 	my $installedFileName = $self->{installedFileName};
-	didbsprint "Creating installed file: $installedFileName\n";
+	dadbsprint "Creating installed file: $installedFileName\n";
 	open IFN, ">$installedFileName" || die $!;
 	printf IFN "$self->{envPacDepHash}\n";
 	close IFN;
@@ -209,7 +209,7 @@ sub fakeNewInstalledDate
     $self->{stateString} = INSTALLED;
     $self->{installedDate} = time();
     (!$useHashes) && $self->{v} &&
-	didbsprint "Fake set new installed date to " .
+	dadbsprint "Fake set new installed date to " .
 	$self->{installedDate} . "\n";
 }
 
@@ -221,23 +221,23 @@ sub getState
 
 sub calculateMostRecentDependencyDate
 {
-    (my $self, $didbsPackage, $installedDate, $foundPackageStatesRef ) = (@_);
+    (my $self, $dadbsPackage, $installedDate, $foundPackageStatesRef ) = (@_);
 
-    (!$useHashes) && $self->{v} && didbsprint "Looking for most recent dependency date for $didbsPackage->{packageId}\n";
+    (!$useHashes) && $self->{v} && dadbsprint "Looking for most recent dependency date for $dadbsPackage->{packageId}\n";
 
-    my @pkgDependencies = split(',',$didbsPackage->{dependenciesList});
+    my @pkgDependencies = split(',',$dadbsPackage->{dependenciesList});
 
     my $mostRecentDepDate = $installedDate;
 
     for $dep (@pkgDependencies)
     {
 	my $depPkgState = ${$foundPackageStatesRef}{$dep};
-	(!$useHashes) && $self->{v} && didbsprint "For dep $dep have pkgstate ".
+	(!$useHashes) && $self->{v} && dadbsprint "For dep $dep have pkgstate ".
 	    $depPkgState->getState()."\n";
 	my $pkgDepDate = $depPkgState->{installedDate};
 	if( $pkgDepDate gt $installedDate )
 	{
-	    (!$useHashes) && $self->{v} && didbsprint "Dep $dep INCREASE of lmd to $pkgDepDate\n";
+	    (!$useHashes) && $self->{v} && dadbsprint "Dep $dep INCREASE of lmd to $pkgDepDate\n";
 	    $installedDate = $pkgDepDate;
 	}
     }
@@ -246,11 +246,11 @@ sub calculateMostRecentDependencyDate
 }
 sub calculateDependencyHashes
 {
-    (my $self, $didbsPackage, $foundPackageStatesRef ) = (@_);
+    (my $self, $dadbsPackage, $foundPackageStatesRef ) = (@_);
 
-    $self->{v} && didbsprint "Looking for dependency hashes for $didbsPackage->{packageId}\n";
+    $self->{v} && dadbsprint "Looking for dependency hashes for $dadbsPackage->{packageId}\n";
 
-    my @pkgDependencies = split(',',$didbsPackage->{dependenciesList});
+    my @pkgDependencies = split(',',$dadbsPackage->{dependenciesList});
 
     my $mostRecentDepDate = $installedDate;
 
@@ -259,7 +259,7 @@ sub calculateDependencyHashes
     for $dep (@pkgDependencies)
     {
 	my $depPkgState = ${$foundPackageStatesRef}{$dep};
-	$self->{v} && didbsprint "For dep $dep have pkgstate ".
+	$self->{v} && dadbsprint "For dep $dep have pkgstate ".
 	    $depPkgState->getState()."\n";
 	my $pkgEnvPacDepHash = $depPkgState->{envPacDepHash};
 	push @dependencyHashes, $pkgEnvPacDepHash;

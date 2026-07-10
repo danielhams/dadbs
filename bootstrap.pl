@@ -1,23 +1,23 @@
-#!/usr/didbs/current/bin/perl
+#!/usr/dadbsbootstrap/bin/perl
 
 use File::Basename qw/basename/;
 use FindBin;
-use lib ".";
-#use lib "$FindBin::Bin/lib";
+#use lib ".";
+use lib "$FindBin::Bin/lib";
 
 # Packages specific to the tooling
-use DidbsStageChecker;
-use DidbsDependencyEngine;
-use DidbsPackage;
-use DidbsPackageState;
-use DidbsExtractor;
-use DidbsPatcher;
-use DidbsConfigurator;
-use DidbsBuilder;
-use DidbsInstaller;
-use DidbsPackageShell;
-use DidbsUtils;
-use DidbsDependencyWriter;
+use DadbsStageChecker;
+use DadbsDependencyEngine;
+use DadbsPackage;
+use DadbsPackageState;
+use DadbsExtractor;
+use DadbsPatcher;
+use DadbsConfigurator;
+use DadbsBuilder;
+use DadbsInstaller;
+use DadbsPackageShell;
+use DadbsUtils;
+use DadbsDependencyWriter;
 
 STDERR->autoflush(1);
 STDOUT->autoflush(1);
@@ -27,8 +27,8 @@ my $version = "0.1.9";
 
 (my $configfile = basename($0)) =~ s/^(.*?)(?:\..*)?$/$1.conf/;
 my $scriptLocation = $FindBin::Bin;
-#didbsprint "Script location is $scriptLocation\n";
-#didbsprint "Configfile is $configfile\n";
+#dadbsprint "Script location is $scriptLocation\n";
+#dadbsprint "Configfile is $configfile\n";
 
 my $usingfoundconf = 0;
 
@@ -46,9 +46,7 @@ use Getopt::Long;
 my $packageDir = undef;
 my $buildDir = undef;
 my $installDir = undef;
-my $didbselfwidth = "n32";
-my $didbsisa = "mips3";
-my $didbscompiler = "mipspro";
+my $dadbscompiler = "gcc";
 my $verbose = 0;
 my $clean = 0;
 my $stoponuntested = 0;
@@ -74,7 +72,7 @@ sub supressenv
 	delete $ENV{$_};
 	if($verbose)
 	{
-		didbsprint " Supressing environment $_\n";
+		dadbsprint " Supressing environment $_\n";
 	}
     }
 }
@@ -139,28 +137,21 @@ sub usage
     print <<EOUSAGE
 Setup: bootstrap.pl [maintenance options]
 Run  : bootstrap.pl
-Maintenance Options: (# = not yet working)
+Maintenance Options:
 \t-p /pathforpackages\t--packagedir /pathforpackages
 \t-b /pathforbuilding\t--builddir /pathforbuilding
 \t-i /pathforinstall \t--installdir /pathforinstall
-\t-e n32/64          \t--elfwidth n32/64      (n32)
-\t-a mips3/mips4     \t--isa mips3/mips4      (mips3)
-\t-c mipspro/gcc     \t--compiler mipspro/gcc (mipspro)
 \t-v                 \t--verbose
 \t                   \t--clean                (builds + installs)
 \t                   \t--stoponuntested
 \t                   \t--dryrun
-#\t                   \t--build PACKAGENAME
 \t                   \t--buildshell PACKAGENAME
-#\t                   \t--release RELEASEID    (create tooling .inst)
 
 On first run you must provide the package, build and installation directories
-that this bootstrapper will use. If not specified, didbs will default to n32,
-mips3, mipspro.
+that this bootstrapper will use.
 
-Didbs bootstrap building relies on the use of a previous didbs release
-extracted and symbolically linked to '/usr/didbs/current'. This tooling must be
-the "n32" "mips3" "mipspro" release to allow building any variation.
+Dadbs bootstrap building relies on the use of a previous dadbs release
+extracted and symbolically linked to '/usr/dadbs/current'.
 
 When running the script without arguments, the script will attempt to determine
 and build currently missing packages. Using the --stoponuntested flag will halt
@@ -183,7 +174,7 @@ sub writeconfig
     my %hash = %{ $hash_ref };
 
     my $cfname = "$scriptLocation/$configfile";
-    $verbose && didbsprint "Will write config to $cfname\n";
+    $verbose && dadbsprint "Will write config to $cfname\n";
     open(FH, '>'.$cfname) || die $!;
 
     foreach my $key (keys %hash)
@@ -191,8 +182,6 @@ sub writeconfig
         if( $key eq "packagedir" ||
             $key eq "builddir" ||
             $key eq "installdir" ||
-	    $key eq "elfwidth" ||
-	    $key eq "isa" ||
 	    $key eq "compiler")
         {
             printf FH "--".$key . " " . $hash{$key} . "\n";
@@ -217,19 +206,19 @@ sub writeconfig
         }
         else
         {
-            didbsprint "Unhandled option: $key\n";
+            dadbsprint "Unhandled option: $key\n";
             exit(-1);
         }
     }
     close(FH);
 }
 
-didbsprint "didbs bootstrapper script version $version\n";
-didbsprint "\n";
+dadbsprint "dadbs bootstrapper script version $version\n";
+dadbsprint "\n";
 
 if( $usingfoundconf == 1 )
 {
-    didbsprint "Adding found config.\n To start fresh, rm $scriptLocation/$configfile\n";
+    dadbsprint "Adding found config.\n To start fresh, rm $scriptLocation/$configfile\n";
 }
 
 my %options = ();
@@ -238,9 +227,7 @@ GetOptions(\%options,
            "packagedir|p=s" => \$packageDir,
            "builddir|b=s" => \$buildDir,
            "installdir|i=s" => \$installDir,
-	   "elfwidth|e=s" => \$didbselfwidth,
-	   "isa|a=s" => \$didbsisa,
-	   "compiler|c=s" => \$didbscompiler,
+	   "compiler|c=s" => \$dadbscompiler,
            "verbose|v" => \$verbose,
            "clean" => \$clean,
            "stoponuntested" => \$stoponuntested,
@@ -252,31 +239,27 @@ GetOptions(\%options,
 $verbose = $verbose || $ENV{"V"}=="1";
 
 #if( !defined($packageDir) || !defined($buildDir) || !defined($installDir)
-#    || !defined($didbsabi))
+#    || !defined($dadbsabi))
 if( !defined($packageDir) || !defined($buildDir) || !defined($installDir)
- || !defined($didbselfwidth) || !defined($didbsisa) || !defined($didbscompiler)
+ || !defined($dadbscompiler)
   )
 {
-    $verbose && didbsprint "packageDir=$packageDir\n";
-    $verbose && didbsprint "buildDir=$buildDir\n";
-    $verbose && didbsprint "installDir=$installDir\n";
-    $verbose && didbsprint "elfwidth=$didbselfwidth\n";
-    $verbose && didbsprint "isa=$didbsisa\n";
-    $verbose && didbsprint "compiler=$didbscompiler\n";
+    $verbose && dadbsprint "packageDir=$packageDir\n";
+    $verbose && dadbsprint "buildDir=$buildDir\n";
+    $verbose && dadbsprint "installDir=$installDir\n";
+    $verbose && dadbsprint "compiler=$dadbscompiler\n";
     usage(true);
 }
 
-my $compatibleDidbsCurrent = checkdidbscompatiblesetup($verbose,$didbscompiler,$version);
-if( !$compatibleDidbsCurrent )
+my $compatibleDadbsCurrent = checkdadbscompatiblesetup($verbose,$dadbscompiler,$version);
+if( !$compatibleDadbsCurrent )
 {
-    print <<EOINCOMPATIBLEDIDBSCURRENT
+    print <<EOINCOMPATIBLEDADBSCURRENT
 ERROR
-For didbs $version, running bootstrap requires:
-(1) systune ncargs 131072 (or greater)
-(2) An existing compatible didbs release behind a symbolic link
-    at /usr/didbs/current.
+(1) An existing compatible dadbs release behind a symbolic link
+    at /usr/dadbs/current.
 Unable to continue.
-EOINCOMPATIBLEDIDBSCURRENT
+EOINCOMPATIBLEDADBSCURRENT
 ;
     exit -1;
 }
@@ -295,7 +278,7 @@ sub prompt_yn
 {
     my( $query ) = @_;
     my $answer = prompt("$query (y/n): ");
-    didbsprint "\n";
+    dadbsprint "\n";
     return lc($answer) eq 'y';
 }
 
@@ -304,11 +287,11 @@ sub prompt_before_delete
     my( $dirtodelete ) = @_;
     if( $dirtodelete ne "" && $dirtodelete ne "/")
     {
-	didbsprint "About to delete $dirtodelete/*\n";
+	dadbsprint "About to delete $dirtodelete/*\n";
 	if( prompt_yn("Are you sure") )
 	{
 	    system("rm -rf $dirtodelete/*");
-#	    didbsprint "rm -rf $dirtodelete/*";
+#	    dadbsprint "rm -rf $dirtodelete/*";
 	}
 	else
 	{
@@ -319,7 +302,7 @@ sub prompt_before_delete
 
 if( $clean )
 {
-    didbsprint "This will delete all content...\n";
+    dadbsprint "This will delete all content...\n";
     # For now leave the packages there
 #    prompt_before_delete($packageDir);
     prompt_before_delete($buildDir);
@@ -330,19 +313,17 @@ if( $clean )
 $options{"packagedir"} = $packageDir;
 $options{"builddir"} = $buildDir;
 $options{"installdir"} = $installDir;
-$options{"elfwidth"} = $didbselfwidth;
-$options{"isa"} = $didbsisa;
-$options{"compiler"} = $didbscompiler;
+$options{"compiler"} = $dadbscompiler;
 $options{"verbose"} = $verbose;
 $options{"stoponuntested"} = $stoponuntested;
 
 print"\n";
 if($verbose)
 {
-    didbsprint "Used config: \n";
+    dadbsprint "Used config: \n";
     foreach $key (keys %options)
     {
-	didbsprint " $key \t=> $options{$key}\n";
+	dadbsprint " $key \t=> $options{$key}\n";
     }
 }
 
@@ -354,18 +335,18 @@ my $parametersUpdated = ($usingfoundconf == 0 || $argc >= 1) && ($nonDestructive
 
 if($verbose)
 {
-    didbsprint "usingfoundconf=$usingfoundconf\n";
-    didbsprint "argc=$argc\n";
-    didbsprint "dryrun=$dryrun\n";
-    didbsprint "onlyDryrunArguments=$onlyDryrunArguments\n";
-    didbsprint "nonDestructiveParameters=$nonDestructiveParameters\n";
-    didbsprint "parametersUpdated=$parametersUpdated\n";
+    dadbsprint "usingfoundconf=$usingfoundconf\n";
+    dadbsprint "argc=$argc\n";
+    dadbsprint "dryrun=$dryrun\n";
+    dadbsprint "onlyDryrunArguments=$onlyDryrunArguments\n";
+    dadbsprint "nonDestructiveParameters=$nonDestructiveParameters\n";
+    dadbsprint "parametersUpdated=$parametersUpdated\n";
 }
 
 my $shouldWriteConfig = 0;
 if( -e "$scriptLocation/$configfile" &&
     $parametersUpdated &&
-    !defined($ENV{"DIDBS_STAGE"}) )
+    !defined($ENV{"DADBS_STAGE"}) )
 {
     if( prompt_yn("This will overwrite existing config - are you sure?") )
     {
@@ -388,13 +369,13 @@ if( $shouldWriteConfig )
 }
 elsif($verbose)
 {
-    didbsprint "Not updating configuration file\n";
+    dadbsprint "Not updating configuration file\n";
 }
 
 if( $parametersUpdated )
 {
-    didbsprint "\n";
-    didbsprint "Parameters updated. Now try running bootstrap.pl alone.\n";
+    dadbsprint "\n";
+    dadbsprint "Parameters updated. Now try running bootstrap.pl alone.\n";
     exit 0;
 }
 
@@ -405,148 +386,81 @@ my(%envvars) = getdefaultenv($DIR);
 foreach $var (keys %envvars)
 {
     my $val = $envvars{$var};
-    $verbose && didbsprint " setting $var=$val\n";
+    $verbose && dadbsprint " setting $var=$val\n";
     $ENV{$var} = $val;
 }
-# And an env var to allow GCC versions to reflect the didbs version
-$ENV{"DIDBS_VERSION"} = $version;
+# And an env var to allow GCC versions to reflect the dadbs version
+$ENV{"DADBS_VERSION"} = $version;
 
 # A hash of the default env, suppressed env and params for the build
-my $didbsenvhash=DidbsPackageHasher::calculateEnvHash(
+my $dadbsenvhash=DadbsPackageHasher::calculateEnvHash(
     $scriptdir."defaultenv.vars",
     $scriptdir."suppressenv.vars",
-    $didbselfwidth,
-    $didbsisa,
-    $didbscompiler );
+    $dadbscompiler );
 
 my(%envvars) = getoverrideenv($DIR);
 foreach $var (keys %envvars)
 {
     my $val = $envvars{$var};
-    $verbose && didbsprint " override of $var=$val\n";
+    $verbose && dadbsprint " override of $var=$val\n";
     $ENV{$var} = $val;
 }
 
 # And set up the necessary env vars computed from
 # the elfwidth,isa and compiler
-my $didbsarchcflags="";
-my $didbsarchldflags="";
-my $didbslibdir="";
-if( $didbscompiler eq "mipspro" ) {
-    if( $didbsisa eq "mips3" ) {
-	$didbsarchcflags .= "-mips3 ";
-	$didbsarchldflags .= "-mips3 ";
-    }
-    elsif( $didbsisa eq "mips4" ) {
-	$didbsarchcflags .= "-mips4 ";
-	$didbsarchldflags .= "-mips4 ";
-    }
-    else {
-	didbsprint "Error: unknown isa:$didbselfwidth\n";
-	exit(1);
-    }
+my $dadbsarchcflags="";
+my $dadbsarchldflags="";
+my $dadbslibdir="lib";
 
-    if( $didbselfwidth eq "n32" ) {
-	$didbsarchcflags .= "-n32 ";
-	$didbsarchldflags .= "-n32 ";
-	$didbslibdir = "lib32";
-    } elsif ( $didbselfwidth eq "n64" ) {
-	$didbsarchcflags .= "-64 ";
-	$didbsarchldflags .= "-64 ";
-	$didbslibdir = "lib64";
-	didbsprint "Error: 64 bit compile not yet supported\n";
-	exit(1);
-    }
-    else {
-	didbsprint "Error: unknown elfwidth:$didbselfwidth\n";
-	exit(1);
-    }
+$ENV{"DADBS_CC"}=$ENV{"DADBS_GCC_CC"};
+$ENV{"DADBS_CXX"}=$ENV{"DADBS_GCC_CXX"};
 
-    $ENV{"DIDBS_CC"}=$ENV{"DIDBS_MP_CC"};
-    $ENV{"DIDBS_CXX"}=$ENV{"DIDBS_MP_CXX"};
-}
-else
-{
-    # GCC setup here....
-    if( $didbsisa eq "mips3" ) {
-	$didbsarchcflags .= "-mips3 ";
-	$didbsarchldflags .= "-mips3 ";
-    }
-    elsif( $didbsisa eq "mips4" ) {
-	$didbsarchcflags .= "-mips4 ";
-	$didbsarchldflags .= "-mips4 ";
-    }
-    else {
-	didbsprint "Error: unknown isa:$didbselfwidth\n";
-	exit(1);
-    }
 
-    if( $didbselfwidth eq "n32" ) {
-#	$didbsarchcflags .= "-n32 ";
-#	$didbsarchldflags .= "-n32 ";
-	$didbslibdir = "lib32";
-    } elsif ( $didbselfwidth eq "n64" ) {
-#	$didbsarchcflags .= "-64 ";
-#	$didbsarchldflags .= "-64 ";
-	$didbslibdir = "lib64";
-	didbsprint "Error: 64 bit compile not yet supported\n";
-	exit(1);
-    }
-    else {
-	didbsprint "Error: unknown elfwidth:$didbselfwidth\n";
-	exit(1);
-    }
-
-    $ENV{"DIDBS_CC"}=$ENV{"DIDBS_GCC_CC"};
-    $ENV{"DIDBS_CXX"}=$ENV{"DIDBS_GCC_CXX"};
-}
-
-$ENV{"DIDBS_ARCH_CFLAGS"} = $didbsarchcflags;
-$ENV{"DIDBS_ARCH_CXXFLAGS"} = $didbsarchcflags;
-$ENV{"DIDBS_ARCH_LDFLAGS"} = $didbsarchldflags;
-$ENV{"DIDBS_LIBDIR"} = $didbslibdir;
+$ENV{"DADBS_ARCH_CFLAGS"} = $dadbsarchcflags;
+$ENV{"DADBS_ARCH_CXXFLAGS"} = $dadbsarchcflags;
+$ENV{"DADBS_ARCH_LDFLAGS"} = $dadbsarchldflags;
+$ENV{"DADBS_LIBDIR"} = $dadbslibdir;
 
 if( $verbose ) {
-    didbsprint "CC            = '".$ENV{"DIDBS_CC"}."'\n";
-    didbsprint "CXX           = '".$ENV{"DIDBS_CXX"}."'\n";
-    didbsprint "arch CFLAGS   = '$didbsarchcflags'\n";
-    didbsprint "arch CXXFLAGS = '$didbsarchcflags'\n";
-    didbsprint "arch LDFLAGS  = '$didbsarchldflags'\n";
-    didbsprint "libdir        = '$didbslibdir'\n";
-    didbsprint "env hash      = '$didbsenvhash'\n";
+    dadbsprint "CC            = '".$ENV{"DADBS_CC"}."'\n";
+    dadbsprint "CXX           = '".$ENV{"DADBS_CXX"}."'\n";
+    dadbsprint "arch CFLAGS   = '$dadbsarchcflags'\n";
+    dadbsprint "arch CXXFLAGS = '$dadbsarchcflags'\n";
+    dadbsprint "arch LDFLAGS  = '$dadbsarchldflags'\n";
+    dadbsprint "libdir        = '$dadbslibdir'\n";
+    dadbsprint "env hash      = '$dadbsenvhash'\n";
 }
 
 # Check if we need to modify paths for stage1 builds
 # are already complete
-my $stageChecker = DidbsStageChecker->new( $scriptLocation,
+my $stageChecker = DadbsStageChecker->new( $scriptLocation,
 					   $packageDir,
 					   $buildDir,
 					   $installDir );
 
 # Only do this once per run of the script to keep things sane
-$verbose && didbsprint "Modifying current path for this stage..\n";
-# Special case - getting the /usr/didbs/current/libXX/pkgconfig into
+$verbose && dadbsprint "Modifying current path for this stage..\n";
+
+# Special case - getting the /usr/dadbs/current/libXX/pkgconfig into
 # the PKG_CONFIG_PATH
-$ENV{"PKG_CONFIG_PATH"} = "/usr/didbs/current/$didbslibdir/pkgconfig";
+$ENV{"PKG_CONFIG_PATH"} = "/usr/dadbs/current/$dadbslibdir/pkgconfig";
 $stageChecker->modifyPathForCurrentStage();
 
-my $origpath = $ENV{"PATH"};
-$ENV{"PATH"} = "$installDir/bin:$origpath";
+#my $origpath = $ENV{"PATH"};
+#$ENV{"PATH"} = "$installDir/bin:$origpath";
 my $origPkgCpath = $ENV{"PKG_CONFIG_PATH"};
-$ENV{"PKG_CONFIG_PATH"} = "$installDir/$didbslibdir/pkgconfig:$origPkgCpath";
-$ENV{"DIDBS_INSTALL_DIR"} = $installDir;
-$ENV{"DIDBS_ISA"} = $didbsisa;
-$ENV{"DIDBS_ISA_SWITCH"} = "-$didbsisa";
+$ENV{"PKG_CONFIG_PATH"} = "$installDir/$dadbslibdir/pkgconfig:$origPkgCpath";
+$ENV{"DADBS_INSTALL_DIR"} = $installDir;
 
-didbsprint "Override the above by created a new file - overrideenv.vars\n";
+dadbsprint "Override the above by created a new file - overrideenv.vars\n";
 print"\n";
 
 my $packageDefsDir = $stageChecker->getStageAdjustedPackageDefDir();
 
-my $pkgDependencyEngine = DidbsDependencyEngine->new($verbose,
+my $pkgDependencyEngine = DadbsDependencyEngine->new($verbose,
 						     $scriptLocation,
 						     $packageDefsDir,
-						     $didbscompiler);
+						     $dadbscompiler);
 
 my $foundPackagesRef = $pkgDependencyEngine->listPackages();
 my $p2pRef = $pkgDependencyEngine->getPackageMap();
@@ -557,8 +471,8 @@ my $sapd = $stageChecker->getStageAdjustedPackageDir();
 my $sabd = $stageChecker->getStageAdjustedBuildDir();
 my $said = $stageChecker->getStageAdjustedInstallDir();
 
-#didbsprint "packageDefsDir=$packageDefsDir\n";
-#didbsprint "sapd=$sapd\n";
+#dadbsprint "packageDefsDir=$packageDefsDir\n";
+#dadbsprint "sapd=$sapd\n";
 
 # Fast quit for buildshell
 if( $buildshellpackage )
@@ -566,11 +480,11 @@ if( $buildshellpackage )
     my $bsPackage = $pkgidToPackageMap{$buildshellpackage};
     if( $bsPackage == undef)
     {
-	didbsprint "Couldn't find package $buildshellpackage.\n";
+	dadbsprint "Couldn't find package $buildshellpackage.\n";
 	exit -1;
     }
-#    didbsprint "Would launch build shell of $buildshellpackage here.\n";
-    my $curpkgshell = DidbsPackageShell->new( $scriptLocation,
+#    dadbsprint "Would launch build shell of $buildshellpackage here.\n";
+    my $curpkgshell = DadbsPackageShell->new( $scriptLocation,
 					      $packageDefsDir,
 					      $buildshellpackage,
 					      $packageDir,
@@ -588,26 +502,26 @@ if( $buildshellpackage )
     exit 0;
 }
 
-# Ensure our "didbsversions" directory exists
+# Ensure our "dadbsversions" directory exists
 if( !$dryrun )
 {
-    my $didbsVersionsDir = "$installDir/didbsversions";
-    if( ! -e $didbsVersionsDir ) {
-	mkdirp("$didbsVersionsDir") || die "Unable to create versions dir: $!";
+    my $dadbsVersionsDir = "$installDir/dadbsversions";
+    if( ! -e $dadbsVersionsDir ) {
+	mkdirp("$dadbsVersionsDir") || die "Unable to create versions dir: $!";
     }
 }
 
 my %foundPackageStates = ();
 
 # Full tree build
-didbsprint "Checking for outdated/missing packages...\n";
+dadbsprint "Checking for outdated/missing packages...\n";
 foreach $pkg (@{$foundPackagesRef})
 {
     my $curpkg = ${$pkg};
     my $pkgid = $curpkg->{packageId};
-    $verbose && didbsprint "Checking status of package '$pkgid'...\n";
+    $verbose && dadbsprint "Checking status of package '$pkgid'...\n";
 
-    checkPackage( $didbsenvhash,
+    checkPackage( $dadbsenvhash,
 		  $pkg,
 		  $scriptLocation,
 		  $packageDefsDir,
@@ -618,11 +532,11 @@ foreach $pkg (@{$foundPackagesRef})
 		  \%foundPackageStates );
 }
 
-didbsprint "Processed ".@{$foundPackagesRef}." packages.\n";
+dadbsprint "Processed ".@{$foundPackagesRef}." packages.\n";
 
 #if( $verbose )
 #{
-    my $dependenciesWriter = DidbsDependencyWriter->new($version,
+    my $dependenciesWriter = DadbsDependencyWriter->new($version,
 							$scriptLocation,
 							$foundPackagesRef,
 							\%foundPackageStates);
@@ -633,7 +547,7 @@ exit 0;
 
 sub checkPackage
 {
-    my( $didbsenvhash,
+    my( $dadbsenvhash,
 	$pkgRef,
 	$scriptLocation,
 	$packageDefsDir,
@@ -649,10 +563,10 @@ sub checkPackage
     my($packageId) = $pkg->{packageId};
     my($curpkg) = $pkg;
 
-    my $curpkgstate = DidbsPackageState->new($verbose,
+    my $curpkgstate = DadbsPackageState->new($verbose,
 					     $scriptLocation,
 					     $packageDefsDir,
-					     $didbsenvhash,
+					     $dadbsenvhash,
 					     $packageId,
 					     $packageDir,
 					     $buildDir,
@@ -660,26 +574,26 @@ sub checkPackage
 					     $curpkg,
 					     $foundPackageStatesRef );
 
-#    didbsprint "$curpkg->{passesChecksIndicator} $stoponuntested\n";
+#    dadbsprint "$curpkg->{passesChecksIndicator} $stoponuntested\n";
     ${$foundPackageStatesRef}{$packageId} = $curpkgstate;
-    $verbose && didbsprint "Set the package state for $packageId\n";
+    $verbose && dadbsprint "Set the package state for $packageId\n";
 
     my $pkgPci = $curpkg->{passesChecksIndicator};
-    $verbose && didbsprint "Package pci=$pkgPci and sou=$stoponuntested\n";
+    $verbose && dadbsprint "Package pci=$pkgPci and sou=$stoponuntested\n";
 
     if( !$pkgPci && !$stoponuntested)
     {
-	$verbose && didbsprint "Skipping untested package: $packageId\n";
+	$verbose && dadbsprint "Skipping untested package: $packageId\n";
 	return;
     }
 
     if( $curpkgstate->getState() ne INSTALLED )
     {
-	didbsprint "Checking status of package $packageId...\n";
+	dadbsprint "Checking status of package $packageId...\n";
 	# Wait for a return
 	#<STDIN>;
 
-	my $curpkgextractor = DidbsExtractor->new( $scriptLocation,
+	my $curpkgextractor = DadbsExtractor->new( $scriptLocation,
 						   $packageId,
 						   $packageDir,
 						   $buildDir,
@@ -697,10 +611,10 @@ sub checkPackage
 
 	    if( !$curpkgextractor->extractionSuccess() )
 	    {
-		$verbose && didbsprint "Package extraction not complete.\n";
+		$verbose && dadbsprint "Package extraction not complete.\n";
 		if( !$curpkgextractor->extractit() )
 		{
-		    didbsprint "Unable to extract $curpkg->{packageId}\n";
+		    dadbsprint "Unable to extract $curpkg->{packageId}\n";
 		    exit -1;
 		}
 	    }
@@ -713,7 +627,7 @@ sub checkPackage
 	    if( defined($curpkg->{packagePatch}) &&
 		$curpkgextractor->getState() ne PATCHED)
 	    {
-		$curpkgpatcher = DidbsPatcher->new( $scriptLocation,
+		$curpkgpatcher = DadbsPatcher->new( $scriptLocation,
 						    $packageDefsDir,
 						    $packageId,
 						    $packageDir,
@@ -723,14 +637,14 @@ sub checkPackage
 
 		if( !$curpkgpatcher->patchit() )
 		{
-		    didbsprint "Failed to patch $curpkg->{packageId}\n";
+		    dadbsprint "Failed to patch $curpkg->{packageId}\n";
 		    exit -1;
 		}
 		$curpkgextractor->setState(PATCHED);
 	    }
 	}
 
-	my $curpkgconfigurator = DidbsConfigurator->new( $scriptLocation,
+	my $curpkgconfigurator = DadbsConfigurator->new( $scriptLocation,
 							 $packageDefsDir,
 							 $packageId,
 							 $packageDir,
@@ -745,12 +659,12 @@ sub checkPackage
 	{
 	    if( !$curpkgconfigurator->configureit() )
 	    {
-		didbsprint "Failed during configure stage.\n";
+		dadbsprint "Failed during configure stage.\n";
 		exit -1;
 	    }
 	}
 
-	my $curpkgbuilder = DidbsBuilder->new( $scriptLocation,
+	my $curpkgbuilder = DadbsBuilder->new( $scriptLocation,
 					       $packageDefsDir,
 					       $packageId,
 					       $packageDir,
@@ -765,15 +679,15 @@ sub checkPackage
 	{
 	    if( !$curpkgbuilder->buildit() )
 	    {
-		didbsprint "Failed during build step.\n";
+		dadbsprint "Failed during build step.\n";
 		exit -1;
 	    }
 	}
-	$verbose && didbsprint "Package $packageId complete.\n";
+	$verbose && dadbsprint "Package $packageId complete.\n";
 
 	if( $stoponuntested && !($curpkg->{passesChecksIndicator}) )
 	{
-	    didbsprint "This package ($packageId) is marked untested, please do the tests.\n";
+	    dadbsprint "This package ($packageId) is marked untested, please do the tests.\n";
 	    # Only stop if we aren't dry running (pretend)
 	    if( !$dryrun )
 	    {
@@ -781,7 +695,7 @@ sub checkPackage
 	    }
 	}
 
-	my $curpkginstaller = DidbsInstaller->new( $scriptLocation,
+	my $curpkginstaller = DadbsInstaller->new( $scriptLocation,
 						   $packageDefsDir,
 						   $packageId,
 						   $packageDir,
@@ -796,14 +710,14 @@ sub checkPackage
 	{
 	    if( !$curpkginstaller->installit() )
 	    {
-		didbsprint "Failed during install step.\n";
+		dadbsprint "Failed during install step.\n";
 		exit -1;
 	    }
 	    $curpkgstate->setState(INSTALLED);
 	}
 	else
 	{
-	    didbsprint "  Package needs building...\n";
+	    dadbsprint "  Package needs building...\n";
 	    $curpkgstate->fakeNewInstalledDate();
 	}
     }

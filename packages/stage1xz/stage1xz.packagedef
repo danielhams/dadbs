@@ -1,0 +1,14 @@
+packageSource=https://distfiles.macports.org/xz/xz-5.0.8.tar.gz
+packageFile=xz-5.0.8.tar.gz
+packageChecksum=d19507f40e0d904d0a1b7914b173800e
+packageExtraction=tarxfsystemhelper.sh
+packageDir=xz-5.0.8
+packagePatch=xz.amixfixes.patch
+expectedToolList=
+dependenciesList=stage1make,stage1tar,stage1bzip_so
+envModifs=setupenv.sh
+configureRecipe=configureit
+buildRecipe=buildit
+installRecipe=installit
+passesChecksIndicator=1
+compilers=gcc

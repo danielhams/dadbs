@@ -1,0 +1,7 @@
+CC=$DIDBS_CC
+CFLAGS="$DIDBS_ARCH_CFLAGS"
+LDFLAGS="$DIDBS_ARCH_LDFLAGS"
+export CC CFLAGS LDFLAGS
+#echo "env is:"
+#env
+#exit 1

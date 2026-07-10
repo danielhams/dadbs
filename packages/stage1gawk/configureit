@@ -1,0 +1,18 @@
+#!/usr/gnutc/bin/sh
+
+BUILDDIR=$1
+INSTALLDIR=$2
+EXTRAARGS=$3
+echo $BUILDDIR
+echo $INSTALLDIR
+echo $EXTRAARGS
+. ./setupenv.sh
+cd $BUILDDIR || exit -1
+
+# Early exit for patching
+#exit 1
+
+unset CONFIG_SHELL
+
+./configure --prefix=$INSTALLDIR --disable-nls || exit -1
+exit 0

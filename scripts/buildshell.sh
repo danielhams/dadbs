@@ -1,4 +1,4 @@
-#!/bin/env bash
+#!/usr/gnutc/bin/bash
 
 SCRIPTLOCATION=$1;
 PACKAGEID=$2;
@@ -6,7 +6,7 @@ PACKAGEDIR=$3;
 BUILDDIR=$4;
 INSTALLDIR=$5;
 ENVMODIFS=$6;
-PS1='[didbsshell \u@\h \W]\$ '
+PS1='[dadbsshell \u@\h \W]\$ '
 export SCRIPTLOCATION PACKAGEID PACKAGEDIR BUILDDIR INSTALLDIR ENVMODIFS PS1
 echo "Build shell and environment ready."
 echo "SCRIPTLOCATION=$SCRIPTLOCATION"

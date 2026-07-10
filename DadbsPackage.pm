@@ -1,6 +1,6 @@
-package DidbsPackage;
+package DadbsPackage;
 
-use DidbsUtils;
+use DadbsUtils;
 
 # Contents read from packages/packageId.packagedef - contains:
 #
@@ -33,23 +33,23 @@ sub debug
     my $self = shift;
     if( $self->{v} )
     {
-	didbsprint "DidbsPackage:          \t   ".$self->{packageId}."\n";
-	didbsprint " packageSource:        \t=> ".$self->{packageSource}."\n";
-	didbsprint " packageFile:          \t=> ".$self->{packageFile}."\n";
-	didbsprint " packageChecksum:      \t=> ".$self->{packageChecksum}."\n";
-	didbsprint " packageExtraction:    \t=> ".$self->{packageExtraction}."\n";
-	didbsprint " packageDir:           \t=> ".$self->{packageDir}."\n";
-	didbsprint " packagePatch:         \t=> ".$self->{packagePatch}."\n";
-	didbsprint " expectedToolList:     \t=> ".$self->{expectedToolList}."\n";
-	didbsprint " dependenciesList:     \t=> ".$self->{dependenciesList}."\n";
-	didbsprint " envModifs:            \t=> ".$self->{envModifs}."\n";
-	didbsprint " configureRecipe:      \t=> ".$self->{configureRecipe}."\n";
-	didbsprint " buildRecipe:          \t=> ".$self->{buildRecipe}."\n";
-	didbsprint " installRecipe:        \t=> ".$self->{installRecipe}."\n";
-	didbsprint " passesChecksIndicator:\t=> ".$self->{passesChecksIndicator}."\n";
-	didbsprint " disabled              \t=> ".$self->{disabled}."\n";
-	didbsprint " compilers             \t=> ".$self->{compilers}."\n";
-	didbsprint " sequenceNo:           \t=> ".$self->{sequenceNo}."\n";
+	dadbsprint "DadbsPackage:          \t   ".$self->{packageId}."\n";
+	dadbsprint " packageSource:        \t=> ".$self->{packageSource}."\n";
+	dadbsprint " packageFile:          \t=> ".$self->{packageFile}."\n";
+	dadbsprint " packageChecksum:      \t=> ".$self->{packageChecksum}."\n";
+	dadbsprint " packageExtraction:    \t=> ".$self->{packageExtraction}."\n";
+	dadbsprint " packageDir:           \t=> ".$self->{packageDir}."\n";
+	dadbsprint " packagePatch:         \t=> ".$self->{packagePatch}."\n";
+	dadbsprint " expectedToolList:     \t=> ".$self->{expectedToolList}."\n";
+	dadbsprint " dependenciesList:     \t=> ".$self->{dependenciesList}."\n";
+	dadbsprint " envModifs:            \t=> ".$self->{envModifs}."\n";
+	dadbsprint " configureRecipe:      \t=> ".$self->{configureRecipe}."\n";
+	dadbsprint " buildRecipe:          \t=> ".$self->{buildRecipe}."\n";
+	dadbsprint " installRecipe:        \t=> ".$self->{installRecipe}."\n";
+	dadbsprint " passesChecksIndicator:\t=> ".$self->{passesChecksIndicator}."\n";
+	dadbsprint " disabled              \t=> ".$self->{disabled}."\n";
+	dadbsprint " compilers             \t=> ".$self->{compilers}."\n";
+	dadbsprint " sequenceNo:           \t=> ".$self->{sequenceNo}."\n";
     }
 }
 
@@ -65,7 +65,7 @@ sub readPackageDef
     {
 	die "No such package definition: $packageDef\n";
     }
-    $verbose && didbsprint "Reading from $packageDef\n";
+    $verbose && dadbsprint "Reading from $packageDef\n";
 
     open PKG, "<".$packageDef || die $!;
     my @lines = <PKG>;

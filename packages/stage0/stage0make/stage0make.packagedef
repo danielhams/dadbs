@@ -1,0 +1,15 @@
+packageSource=http://ftp.gnu.org/gnu/make/make-3.8.0.tar.gz
+packageFile=make-3.8.0.tar.gz
+packageChecksum=banana
+packageDir=make-3.8.0
+packagePatch=make.amixfixes.patch
+
+packageExtraction=guntarsystemhelper.sh
+expectedToolList=
+dependenciesList=
+envModifs=setupenv.sh
+configureRecipe=configureit
+buildRecipe=buildit
+installRecipe=installit
+passesChecksIndicator=0
+compilers=gcc

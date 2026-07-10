@@ -1,0 +1,24 @@
+#!/usr/gnutc/bin/bash
+
+BUILDDIR=$1
+INSTALLDIR=$2
+EXTRAARGS=$3
+echo $BUILDDIR
+echo $INSTALLDIR
+echo $EXTRAARGS
+. ./setupenv.sh
+
+echo "Extracting AMIX FPU math objects for POSIX module..."
+mkdir -p $BUILDDIR/ext/POSIX/libcfuncs
+pushd $BUILDDIR/ext/POSIX/libcfuncs
+ar x /usr/ccs/lib/libc.a fpsetmask.o fpgetmask.o fpsetrnd.o fpgetrnd.o fpsetsticky.o fpgetsticky.o
+popd
+
+cd $BUILDDIR || exit 1
+
+# Early exist for patch generation
+#exit 1
+
+$SHELL ./Configure -des -Dprefix=$INSTALLDIR -Dcc=$CC -Doptimize=$CFLAGS -Dnm=nm -Dar=ar || exit 1
+
+exit 0

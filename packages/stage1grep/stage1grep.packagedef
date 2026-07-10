@@ -1,0 +1,14 @@
+packageSource=http://ftp.gnu.org/pub/gnu/grep/grep-2.5.1.tar.gz
+packageFile=grep-2.5.1.tar.gz
+packageChecksum=85df024edc9f9689035f6b3de28c7731
+packageExtraction=tarxfsystemhelper.sh
+packageDir=grep-2.5.1
+packagePatch=grep.amixfixes.patch
+expectedToolList=
+dependenciesList=stage1make,stage1tar,stage1xz,stage1sed,stage1gawk
+envModifs=setupenv.sh
+configureRecipe=configureit
+buildRecipe=buildit
+installRecipe=installit
+passesChecksIndicator=1
+compilers=gcc

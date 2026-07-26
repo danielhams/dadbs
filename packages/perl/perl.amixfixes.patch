@@ -1,0 +1,118 @@
+diff -Naur perl5.005_03/Configure perl5.005_03-patched/Configure
+--- perl5.005_03/Configure	1999-03-28 16:12:57.000000000 +0000
++++ perl5.005_03-patched/Configure	2026-07-03 23:19:43.000000000 +0000
+@@ -1973,7 +1973,13 @@
+ 	$test -d /NextApps && set X `hostinfo | grep 'NeXT Mach.*:' | \
+ 		$sed -e 's/://' -e 's/\./_/'` && osname=next && osvers=$4
+ 	$test -d /usr/apollo/bin && osname=apollo
+-	$test -f /etc/saf/_sactab && osname=svr4
++	if $test -f /etc/saf/_sactab; then
++	    if $test -c /dev/amiga; then
++		osname=amix
++	    else
++		osname=svr4
++	    fi
++        fi
+ 	$test -d /usr/include/minix && osname=minix
+ 	if $test -d /MachTen -o -d /MachTen_Folder; then
+ 		osname=machten
+diff -Naur perl5.005_03/ext/IPC/SysV/SysV.xs perl5.005_03-patched/ext/IPC/SysV/SysV.xs
+--- perl5.005_03/ext/IPC/SysV/SysV.xs	1999-02-16 17:52:47.000000000 +0000
++++ perl5.005_03-patched/ext/IPC/SysV/SysV.xs	2026-07-04 05:53:31.000000000 +0000
+@@ -14,7 +14,7 @@
+ #       include <sys/msg.h>
+ #   endif
+ #   ifdef HAS_SHM
+-#       if defined(PERL_SCO) || defined(PERL_ISC)
++#       if defined(PERL_SCO) || defined(PERL_ISC) || defined(AMIX)
+ #           include <sys/sysmacros.h>	/* SHMLBA */
+ #       endif
+ #      include <sys/shm.h>
+diff -Naur perl5.005_03/ext/ODBM_File/Makefile.PL perl5.005_03-patched/ext/ODBM_File/Makefile.PL
+--- perl5.005_03/ext/ODBM_File/Makefile.PL	1998-11-27 02:13:13.000000000 +0000
++++ perl5.005_03-patched/ext/ODBM_File/Makefile.PL	2026-07-04 16:45:52.000000000 +0000
+@@ -1,7 +1,7 @@
+ use ExtUtils::MakeMaker;
+ WriteMakefile(
+     NAME	=> 'ODBM_File',
+-    LIBS => ["-ldbm -lucb"],
++    LIBS => ["-L/usr/ucblib -ldbm", "-L/usr/ccs/lib -lucb"],
+     MAN3PODS 	=> {}, 	# Pods will be built by installman.
+     XSPROTOARG => '-noprototypes', 		# XXX remove later?
+     VERSION_FROM => 'ODBM_File.pm', 
+diff -Naur perl5.005_03/ext/POSIX/Makefile.PL perl5.005_03-patched/ext/POSIX/Makefile.PL
+--- perl5.005_03/ext/POSIX/Makefile.PL	1998-11-27 02:13:25.000000000 +0000
++++ perl5.005_03-patched/ext/POSIX/Makefile.PL	2026-07-04 10:37:49.000000000 +0000
+@@ -1,7 +1,8 @@
+ use ExtUtils::MakeMaker;
+ WriteMakefile(
+     NAME	=> 'POSIX',
+-    ($^O eq 'MSWin32' ? () : (LIBS	=> ["-lm -lposix -lcposix"])),
++    OBJECT      => 'POSIX.o libcfuncs/fpsetmask.o libcfuncs/fpgetmask.o libcfuncs/fpsetrnd.o libcfuncs/fpgetrnd.o libcfuncs/fpsetsticky.o libcfuncs/fpgetsticky.o',
++    ($^O eq 'MSWin32' ? () : (LIBS	=> ["-L/usr/ccs/lib -lm", "-lposix", "-lcposix"])),
+     MAN3PODS 	=> {}, 	# Pods will be built by installman.
+     XSPROTOARG => '-noprototypes', 		# XXX remove later?
+     VERSION_FROM => 'POSIX.pm', 
+diff -Naur perl5.005_03/hints/amix.sh perl5.005_03-patched/hints/amix.sh
+--- perl5.005_03/hints/amix.sh	1970-01-01 00:00:00.000000000 +0000
++++ perl5.005_03-patched/hints/amix.sh	2026-07-04 08:38:33.000000000 +0000
+@@ -0,0 +1,59 @@
++# amix hints, (copied + modified from svr4.sh) System V Release 4.x
++# Last modified 2026/0703 by Dan
++# Last modified 1996/10/25 by Tye McQueen, tye@metronet.com
++# Merged 1998/04/23 with perl5.004_04 distribution by 
++# Andy Dougherty <doughera@lafayette.edu>
++
++# Use Configure -Dcc=gcc to use gcc - better, use m68k-cbm-sysv-gcc
++case "$cc" in
++'') cc='gcc'
++    test -f $cc || cc='gcc'
++    ;;
++esac
++
++glibpth="/usr/lib"
++xlibpth=""
++nm_opt='-p'
++archname='m68k-amix'
++osvers='2.1c'
++usemymalloc='y'
++installusrbinperl='n'
++usedl='y'
++lddlflags='-shared'
++dlsrc="dl_dlopen.xs"
++useshrplib='y'
++# Not needed with shared libperl
++#ccdlflags='-Wl,-E'
++libs="-lsocket -lnsl -lc -lcrypt -lx -ldl -lm"
++perllibs="-lsocket -lnsl -lc -lcrypt -lx -ldl -lm /usr/ccs/lib/libm.a"
++
++case "$usenm" in
++'') usenm=false;;
++esac
++
++# Broken C-Shell tests (Thanks to Tye McQueen):
++# The OS-specific checks may be obsoleted by the this generic test.
++	sh_cnt=`sh -c 'echo /*' | wc -c`
++	csh_cnt=`csh -f -c 'glob /*' 2>/dev/null | wc -c`
++	csh_cnt=`expr 1 + $csh_cnt`
++if [ "$sh_cnt" -ne "$csh_cnt" ]; then
++    echo "You're csh has a broken 'glob', disabling..." >&2
++    d_csh='undef'
++fi
++
++# Configure may fail to find lstat() since it's a static/inline function
++# in <sys/stat.h> on Unisys U6000 SVR4, UnixWare 2.x, and possibly other
++# SVR4 derivatives.  (Though UnixWare has it in /usr/ccs/lib/libc.so.)
++d_lstat=define
++
++d_suidsafe='define'	# "./Configure -d" can't figure this out easilly
++
++cat <<'EOM' >&4
++
++If you wish to use dynamic linking, you must use 
++	LD_LIBRARY_PATH=`pwd`; export LD_LIBRARY_PATH
++or
++	setenv LD_LIBRARY_PATH `pwd`
++before running make.
++
++EOM

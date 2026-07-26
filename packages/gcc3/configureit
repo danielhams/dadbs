@@ -1,0 +1,25 @@
+#!/usr/bin/env sh
+
+BUILDDIR=$1
+INSTALLDIR=$2
+EXTRAARGS=$3
+echo $BUILDDIR
+echo $INSTALLDIR
+echo $EXTRAARGS
+. ./setupenv.sh
+cd $BUILDDIR || exit -1
+
+# Early exit for patch generation
+#exit 1
+
+# Install gcc3 into a separate subdirectory as its very alpha state
+# for the moment.
+mkdir -p $INSTALLDIR/gcc3 || exit -1
+
+# Work around configure being unable to figure out we are ASCII
+ac_cv_c_charset=ASCII
+export ac_cv_c_charset
+
+# Only C for now
+ac_cv_c_charset="$ac_cv_c_charset" CC="$CC" CFLAGS="$CFLAGS" BOOT_CFLAGS="$BOOT_CFLAGS" CFLAGS_FOR_TARGET="$CFLAGS_FOR_TARGET" STAGE1_CFLAGS="$STAGE1_CFLAGS" CXXFLAGS="$CXXFLAGS" LIBGCC2_DEBUG_CFLAGS="$LIBGCC2_DEBUG_CFLAGS" CONFIG_SHELL="$CONFIG_SHELL" SHELL="$SHELL" $SHELL ./configure --prefix=$INSTALLDIR/gcc3 --host=m68k-cbm-sysv4 --target=m68k-cbm-sysv4 --with-gnu-as --with-as=$INSTALLDIR/gcc3/bin/as --with-gnu-ld --with-ld=$INSTALLDIR/gcc3/bin/ld --enable-languages=c --disable-nls --enable-shared || exit -1
+exit 0

@@ -1,4 +1,4 @@
-#!/usr/gnutc/bin/sh
+#!/usr/bin/env sh
 
 BUILDDIR=$1
 INSTALLDIR=$2
@@ -12,14 +12,5 @@ cd $BUILDDIR || exit -1
 # Early exit for patch building
 #exit 1
 
-# Setting CONFIG_SHELL seems to cause issues with CPU regressions
-#SHELL=/usr/gnutc/bin/mksh
-#CONFIG_SHELL=$SHELL
-#export SHELL CONFIG_SHELL
-
-SHELL=/usr/gnutc/bin/sh
-export SHELL
-unset CONFIG_SHELL
-
-./configure --prefix=$INSTALLDIR --without-gnu-malloc --enable-readline --disable-nls || exit -1
+$SHELL ./configure --prefix=$INSTALLDIR --without-gnu-malloc --enable-readline --disable-nls || exit -1
 exit 0

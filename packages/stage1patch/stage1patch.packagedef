@@ -1,0 +1,14 @@
+packageSource=patch-2.7.5.tar.gz
+packageFile=patch-2.7.5.tar.gz
+packageChecksum=601eaf156357166ef7aed8102f24a319
+packageExtraction=tarxfsystemhelper.sh
+packageDir=patch-2.7.5
+packagePatch=patch.amixfixes.patch
+expectedToolList=
+dependenciesList=stage1make,stage1tar,stage1gzip
+envModifs=setupenv.sh
+configureRecipe=configureit
+buildRecipe=buildit
+installRecipe=installit
+passesChecksIndicator=1
+compilers=gcc

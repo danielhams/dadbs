@@ -59,8 +59,7 @@ sub startshell
 
     my $installdir = $self->{installDir};
 
-    my $envmodifs = $packageDir . "/" .
-	${$self->{dadbsPackage}}->{envModifs};
+    my $envmodifs = ${$self->{dadbsPackage}}->{envModifs};
     dadbsprint "scriptLocation is $scriptLocation\n";
     dadbsprint "packageId is $packageId\n";
     dadbsprint "packageDir is $packageDir\n";

@@ -1,0 +1,15 @@
+packageSource=flex-2.5.4a.tar.gz
+packageFile=flex-2.5.4a.tar.gz
+packageChecksum=bd8753d0b22e1f4ec87a553a73021adf
+packageExtraction=guntarsystemhelper.sh
+packageDir=flex-2.5.4
+#packagePatch=flex.amixfixes.patch
+
+expectedToolList=
+dependenciesList=coreutils
+envModifs=setupenv.sh
+configureRecipe=configureit
+buildRecipe=buildit
+installRecipe=installit
+passesChecksIndicator=1
+compilers=gcc

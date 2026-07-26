@@ -1,0 +1,17 @@
+#!/usr/bin/env mksh
+
+BUILDDIR=$1
+INSTALLDIR=$2
+EXTRAARGS=$3
+echo $BUILDDIR
+echo $INSTALLDIR
+echo $EXTRAARGS
+. ./setupenv.sh
+cd $BUILDDIR || exit -1
+
+# Early exit for diffing.
+#exit 1
+
+$SHELL ./configure --prefix=$INSTALLDIR --disable-nls --enable-readline --with-installed-readline || exit -1
+
+exit 0

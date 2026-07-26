@@ -1,0 +1,436 @@
+diff -Naur coreutils-6.12/configure coreutils-6.12-patched/configure
+--- coreutils-6.12/configure	2008-05-31 21:23:27.000000000 +0000
++++ coreutils-6.12-patched/configure	2026-06-15 23:32:48.000000000 +0000
+@@ -70545,8 +70545,11 @@
+ MAN=`echo "$optional_bin_progs "|sed 's/ /.1 /g;s/ $//'|tr -d '\\015\\012'`
+ 
+ # Change ginstall.1 to "install.h" in $MAN.
+-MAN=`for m in $MAN; do test $m = ginstall.1 && m=install.1; echo $m; done \
+-  | tr '\015\012' ' '; echo`
++# BUG ON AMIX
++#MAN=`for m in $MAN; do test $m = ginstall.1 && m=install.1; echo $m; done \
++#  | tr '\015\012' ' '; echo`
++MAN=`for m in $MAN; do test $m = ginstall.1 && m=install.1; echo $m; done`
++MAN=`echo $MAN`
+ 
+ # Remove [.1, since writing a portable rule for it in man/Makefile.am
+ # is not practical.  The sed LHS below uses the autoconf quadrigraph
+diff -Naur coreutils-6.12/configure.ac coreutils-6.12-patched/configure.ac
+--- coreutils-6.12/configure.ac	2008-05-30 12:05:47.000000000 +0000
++++ coreutils-6.12-patched/configure.ac	2026-06-15 18:55:28.000000000 +0000
+@@ -312,8 +312,11 @@
+ MAN=`echo "$optional_bin_progs "|sed 's/ /.1 /g;s/ $//'|tr -d '\\015\\012'`
+ 
+ # Change ginstall.1 to "install.h" in $MAN.
+-MAN=`for m in $MAN; do test $m = ginstall.1 && m=install.1; echo $m; done \
+-  | tr '\015\012' ' '; echo`
++# BUG ON AMIX
++#MAN=`for m in $MAN; do test $m = ginstall.1 && m=install.1; echo $m; done \
++#  | tr '\015\012' ' '; echo`
++MAN=`for m in $MAN; do test $m = ginstall.1 && m=install.1; echo $m; done`
++MAN=`echo $MAN`
+ 
+ # Remove [.1, since writing a portable rule for it in man/Makefile.am
+ # is not practical.  The sed LHS below uses the autoconf quadrigraph
+diff -Naur coreutils-6.12/lib/empty.c coreutils-6.12-patched/lib/empty.c
+--- coreutils-6.12/lib/empty.c	1970-01-01 00:00:00.000000000 +0000
++++ coreutils-6.12-patched/lib/empty.c	2026-07-15 12:27:34.705061000 +0000
+@@ -0,0 +1,19 @@
++#include <stddef.h>
++
++/* Minimal stubs */
++struct sha_ctx { int dummy; };
++
++struct sha256_ctx { int d; };
++struct sha512_ctx { int d; };
++
++void sha256_init_ctx (struct sha256_ctx *c) {}
++void sha256_process_bytes (const void *b, size_t l, struct sha256_ctx *c) {}
++void *sha256_finish_ctx (struct sha256_ctx *c, void *r) { return r; }
++void *sha256_read_ctx (const struct sha256_ctx *c, void *r) { return r; }
++void *sha256_buffer (const char *b, size_t l, void *r) { return r; }
++
++void sha512_init_ctx (struct sha512_ctx *c) {}
++void sha512_process_bytes (const void *b, size_t l, struct sha512_ctx *c) {}
++void *sha512_finish_ctx (struct sha512_ctx *c, void *r) { return r; }
++void *sha512_read_ctx (const struct sha512_ctx *c, void *r) { return r; }
++void *sha512_buffer (const char *b, size_t l, void *r) { return r; }
+diff -Naur coreutils-6.12/lib/fsusage.c coreutils-6.12-patched/lib/fsusage.c
+--- coreutils-6.12/lib/fsusage.c	2007-10-17 13:47:25.000000000 +0000
++++ coreutils-6.12-patched/lib/fsusage.c	2026-06-15 21:23:55.000000000 +0000
+@@ -64,6 +64,11 @@
+    not applicable or unknown.  Propagate this information by returning
+    a uintmax_t value that is all 1 bits if X is all 1 bits, even if X
+    is unsigned and narrower than uintmax_t.  */
++#if defined(AMIX)
++#define PROPAGATE_ALL_ONES(res) (uintmax_t)(res)
++#define PROPAGATE_TOP_BIT(res) (uintmax_t)(res)
++#define EXTRACT_TOP_BIT(res) ((res) & 0x80000000UL)
++#else
+ #define PROPAGATE_ALL_ONES(x) \
+   ((sizeof (x) < sizeof (uintmax_t) \
+     && (~ (x) == (sizeof (x) < sizeof (int) \
+@@ -83,6 +88,7 @@
+    Use PROPAGATE_TOP_BIT if the original value might be negative;
+    otherwise, use PROPAGATE_ALL_ONES.  */
+ #define PROPAGATE_TOP_BIT(x) ((x) | ~ (EXTRACT_TOP_BIT (x) - 1))
++#endif
+ 
+ /* Fill in the fields of FSP with information about space usage for
+    the file system on which FILE resides.
+diff -Naur coreutils-6.12/lib/mbchar.c coreutils-6.12-patched/lib/mbchar.c
+--- coreutils-6.12/lib/mbchar.c	2007-10-17 13:47:26.000000000 +0000
++++ coreutils-6.12-patched/lib/mbchar.c	2026-07-05 13:57:17.000000000 +0000
+@@ -16,6 +16,13 @@
+ 
+ #include <config.h>
+ 
++#ifndef HAVE_WINT_T
++
++# if (defined(HAVE_WINT_T) == 1) && !defined(AMIX)
++  typedef int wint_t;
++# endif
++#endif
++
+ #include <limits.h>
+ 
+ #include "mbchar.h"
+diff -Naur coreutils-6.12/lib/propername.c coreutils-6.12-patched/lib/propername.c
+--- coreutils-6.12/lib/propername.c	2008-05-18 16:26:14.000000000 +0000
++++ coreutils-6.12-patched/lib/propername.c	2026-07-05 23:47:19.000000000 +0000
+@@ -17,6 +17,15 @@
+ 
+ #include <config.h>
+ 
++#if !defined(AMIX)
++
++#if !defined(HAVE_WINT_T)
++# define HAVE_WINT_T 1
++typedef int wint_t;
++#endif
++
++#endif
++
+ /* Specification.  */
+ #include "propername.h"
+ 
+diff -Naur coreutils-6.12/man/rm.1 coreutils-6.12-patched/man/rm.1
+--- coreutils-6.12/man/rm.1	2008-05-31 21:26:03.000000000 +0000
++++ coreutils-6.12-patched/man/rm.1	2026-07-06 01:29:39.000000000 +0000
+@@ -1,5 +1,5 @@
+ .\" DO NOT MODIFY THIS FILE!  It was generated by help2man 1.35.
+-.TH RM "1" "May 2008" "GNU coreutils 6.12" "User Commands"
++.TH RM "1" "July 2026" "GNU coreutils 6.12" "User Commands"
+ .SH NAME
+ rm \- remove files or directories
+ .SH SYNOPSIS
+diff -Naur coreutils-6.12/man/seq.1 coreutils-6.12-patched/man/seq.1
+--- coreutils-6.12/man/seq.1	2008-05-31 21:26:08.000000000 +0000
++++ coreutils-6.12-patched/man/seq.1	2026-07-06 01:30:00.000000000 +0000
+@@ -1,5 +1,5 @@
+ .\" DO NOT MODIFY THIS FILE!  It was generated by help2man 1.35.
+-.TH SEQ "1" "May 2008" "GNU coreutils 6.12" "User Commands"
++.TH SEQ "1" "July 2026" "GNU coreutils 6.12" "User Commands"
+ .SH NAME
+ seq \- print a sequence of numbers
+ .SH SYNOPSIS
+diff -Naur coreutils-6.12/man/shred.1 coreutils-6.12-patched/man/shred.1
+--- coreutils-6.12/man/shred.1	2008-05-31 21:26:03.000000000 +0000
++++ coreutils-6.12-patched/man/shred.1	2026-07-06 01:29:44.000000000 +0000
+@@ -1,5 +1,5 @@
+ .\" DO NOT MODIFY THIS FILE!  It was generated by help2man 1.35.
+-.TH SHRED "1" "May 2008" "GNU coreutils 6.12" "User Commands"
++.TH SHRED "1" "July 2026" "GNU coreutils 6.12" "User Commands"
+ .SH NAME
+ shred \- overwrite a file to hide its contents, and optionally delete it
+ .SH SYNOPSIS
+diff -Naur coreutils-6.12/man/sort.1 coreutils-6.12-patched/man/sort.1
+--- coreutils-6.12/man/sort.1	2008-05-31 21:26:06.000000000 +0000
++++ coreutils-6.12-patched/man/sort.1	2026-07-06 01:29:50.000000000 +0000
+@@ -1,5 +1,5 @@
+ .\" DO NOT MODIFY THIS FILE!  It was generated by help2man 1.35.
+-.TH SORT "1" "May 2008" "GNU coreutils 6.12" "User Commands"
++.TH SORT "1" "July 2026" "GNU coreutils 6.12" "User Commands"
+ .SH NAME
+ sort \- sort lines of text files
+ .SH SYNOPSIS
+diff -Naur coreutils-6.12/man/wc.1 coreutils-6.12-patched/man/wc.1
+--- coreutils-6.12/man/wc.1	2008-05-31 21:26:07.000000000 +0000
++++ coreutils-6.12-patched/man/wc.1	2026-07-06 01:29:55.000000000 +0000
+@@ -1,5 +1,5 @@
+ .\" DO NOT MODIFY THIS FILE!  It was generated by help2man 1.35.
+-.TH WC "1" "May 2008" "GNU coreutils 6.12" "User Commands"
++.TH WC "1" "July 2026" "GNU coreutils 6.12" "User Commands"
+ .SH NAME
+ wc \- print newline, word, and byte counts for each file
+ .SH SYNOPSIS
+diff -Naur coreutils-6.12/src/Makefile.in coreutils-6.12-patched/src/Makefile.in
+--- coreutils-6.12/src/Makefile.in	2008-05-31 22:00:38.000000000 +0000
++++ coreutils-6.12-patched/src/Makefile.in	2026-06-15 23:38:58.000000000 +0000
+@@ -34,7 +34,7 @@
+ build_triplet = @build@
+ host_triplet = @host@
+ EXTRA_PROGRAMS = $(am__EXEEXT_1) $(am__EXEEXT_2) [$(EXEEXT) \
+-	chcon$(EXEEXT) chgrp$(EXEEXT) chown$(EXEEXT) chmod$(EXEEXT) \
++	chgrp$(EXEEXT) chown$(EXEEXT) chmod$(EXEEXT) \
+ 	cp$(EXEEXT) dd$(EXEEXT) dircolors$(EXEEXT) du$(EXEEXT) \
+ 	ginstall$(EXEEXT) link$(EXEEXT) ln$(EXEEXT) dir$(EXEEXT) \
+ 	vdir$(EXEEXT) ls$(EXEEXT) mkdir$(EXEEXT) mkfifo$(EXEEXT) \
+@@ -45,15 +45,14 @@
+ 	cut$(EXEEXT) expand$(EXEEXT) fmt$(EXEEXT) fold$(EXEEXT) \
+ 	head$(EXEEXT) join$(EXEEXT) groups$(EXEEXT) md5sum$(EXEEXT) \
+ 	nl$(EXEEXT) od$(EXEEXT) paste$(EXEEXT) pr$(EXEEXT) \
+-	ptx$(EXEEXT) sha1sum$(EXEEXT) sha224sum$(EXEEXT) \
+-	sha256sum$(EXEEXT) sha384sum$(EXEEXT) sha512sum$(EXEEXT) \
++	ptx$(EXEEXT) sha1sum$(EXEEXT) \
+ 	shuf$(EXEEXT) sort$(EXEEXT) split$(EXEEXT) sum$(EXEEXT) \
+ 	tac$(EXEEXT) tail$(EXEEXT) tr$(EXEEXT) tsort$(EXEEXT) \
+ 	unexpand$(EXEEXT) uniq$(EXEEXT) wc$(EXEEXT) basename$(EXEEXT) \
+ 	date$(EXEEXT) dirname$(EXEEXT) echo$(EXEEXT) env$(EXEEXT) \
+ 	expr$(EXEEXT) factor$(EXEEXT) false$(EXEEXT) id$(EXEEXT) \
+ 	kill$(EXEEXT) logname$(EXEEXT) pathchk$(EXEEXT) \
+-	printenv$(EXEEXT) printf$(EXEEXT) pwd$(EXEEXT) runcon$(EXEEXT) \
++	printenv$(EXEEXT) printf$(EXEEXT) pwd$(EXEEXT) \
+ 	seq$(EXEEXT) sleep$(EXEEXT) tee$(EXEEXT) test$(EXEEXT) \
+ 	true$(EXEEXT) tty$(EXEEXT) whoami$(EXEEXT) yes$(EXEEXT) \
+ 	base64$(EXEEXT)
+@@ -225,10 +224,10 @@
+ mkinstalldirs = $(install_sh) -d
+ CONFIG_HEADER = $(top_builddir)/lib/config.h
+ CONFIG_CLEAN_FILES =
+-am__EXEEXT_1 = arch$(EXEEXT) hostname$(EXEEXT) su$(EXEEXT)
+-am__EXEEXT_2 = chroot$(EXEEXT) df$(EXEEXT) hostid$(EXEEXT) \
+-	nice$(EXEEXT) pinky$(EXEEXT) stty$(EXEEXT) su$(EXEEXT) \
+-	uname$(EXEEXT) uptime$(EXEEXT) users$(EXEEXT) who$(EXEEXT)
++am__EXEEXT_1 = arch$(EXEEXT)
++am__EXEEXT_2 = chroot$(EXEEXT) df$(EXEEXT) \
++	nice$(EXEEXT) \
++	uname$(EXEEXT)
+ am__installdirs = "$(DESTDIR)$(bindir)"
+ binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
+ PROGRAMS = $(bin_PROGRAMS) $(noinst_PROGRAMS)
+diff -Naur coreutils-6.12/src/remove.c coreutils-6.12-patched/src/remove.c
+--- coreutils-6.12/src/remove.c	2008-05-06 09:28:24.000000000 +0000
++++ coreutils-6.12-patched/src/remove.c	2026-06-15 22:44:02.000000000 +0000
+@@ -262,11 +262,12 @@
+ static inline void
+ pop_dir (Dirstack_state *ds)
+ {
++  size_t top_len;
+   size_t n_lengths = obstack_object_size (&ds->len_stack) / sizeof (size_t);
+   size_t *length = obstack_base (&ds->len_stack);
+ 
+   assert (n_lengths > 0);
+-  size_t top_len = length[n_lengths - 1];
++  top_len = length[n_lengths - 1];
+   assert (top_len >= 2);
+ 
+   /* Pop the specified length of file name.  */
+@@ -424,10 +425,11 @@
+ static void
+ AD_stack_pop (Dirstack_state *ds)
+ {
++  struct AD_ent *top;
+   assert (0 < AD_stack_height (ds));
+ 
+   /* operate on Active_dir.  pop and free top entry */
+-  struct AD_ent *top = AD_stack_top (ds);
++  top = AD_stack_top (ds);
+   if (top->unremovable)
+     hash_free (top->unremovable);
+   obstack_blank (&ds->Active_dir, -(int) sizeof (struct AD_ent));
+@@ -834,6 +836,7 @@
+ 	struct rm_options const *x, enum Prompt_action mode,
+ 	Ternary *is_empty)
+ {
++  int wp_errno;
+   int write_protected = 0;
+   int dirent_type = *pdirent_type;
+ 
+@@ -842,7 +845,7 @@
+   if (x->interactive == RMI_NEVER)
+     return RM_OK;
+ 
+-  int wp_errno = 0;
++  wp_errno = 0;
+ 
+   if (!x->ignore_missing_files
+       && ((x->interactive == RMI_ALWAYS) || x->stdin_tty)
+@@ -854,6 +857,8 @@
+ 
+   if (write_protected || x->interactive == RMI_ALWAYS)
+     {
++      char const *quoted_name;
++
+       if (0 <= write_protected && dirent_type == DT_UNKNOWN)
+ 	{
+ 	  if (cache_fstatat (fd_cwd, filename, sbuf, AT_SYMLINK_NOFOLLOW) == 0)
+@@ -891,7 +896,7 @@
+ 	    break;
+ 	  }
+ 
+-      char const *quoted_name = quote (full_filename (filename));
++      quoted_name = quote (full_filename (filename));
+ 
+       if (write_protected < 0)
+ 	{
+@@ -1539,6 +1544,8 @@
+ rm_1 (Dirstack_state *ds, char const *filename,
+       struct rm_options const *x, int *cwd_errno)
+ {
++  struct stat st;
++  enum RM_status status;
+   char const *base = last_component (filename);
+   if (dot_or_dotdot (base))
+     {
+@@ -1549,7 +1556,6 @@
+       return RM_ERROR;
+     }
+ 
+-  struct stat st;
+   cache_stat_init (&st);
+   cycle_check_init (&ds->cycle_check_state);
+   if (x->root_dev_ino)
+@@ -1571,8 +1577,8 @@
+   AD_push_initial (ds);
+   AD_INIT_OTHER_MEMBERS ();
+ 
+-  enum RM_status status = remove_entry (AT_FDCWD, ds, filename,
+-					DT_UNKNOWN, &st, x);
++  status = remove_entry (AT_FDCWD, ds, filename,
++			 DT_UNKNOWN, &st, x);
+   if (status == RM_NONEMPTY_DIR)
+     {
+       /* In the event that remove_dir->remove_cwd_entries detects
+diff -Naur coreutils-6.12/src/rm.c coreutils-6.12-patched/src/rm.c
+--- coreutils-6.12/src/rm.c	2008-05-26 06:40:33.000000000 +0000
++++ coreutils-6.12-patched/src/rm.c	2026-06-15 22:40:06.000000000 +0000
+@@ -234,6 +234,9 @@
+   struct rm_options x;
+   bool prompt_once = false;
+   int c;
++  size_t n_files;
++  char const *const *file;
++  enum RM_status status;
+ 
+   initialize_main (&argc, &argv);
+   program_name = argv[0];
+@@ -357,8 +360,8 @@
+ 	       quote ("/"));
+     }
+ 
+-  size_t n_files = argc - optind;
+-  char const *const *file = (char const *const *) argv + optind;
++  n_files = argc - optind;
++  file = (char const *const *) argv + optind;
+ 
+   if (prompt_once && (x.recursive || 3 < n_files))
+     {
+@@ -370,7 +373,7 @@
+       if (!yesno ())
+ 	exit (EXIT_SUCCESS);
+     }
+-  enum RM_status status = rm (n_files, file, &x);
++  status = rm (n_files, file, &x);
+   assert (VALID_STATUS (status));
+   exit (status == RM_ERROR ? EXIT_FAILURE : EXIT_SUCCESS);
+ }
+diff -Naur coreutils-6.12/src/seq.c coreutils-6.12-patched/src/seq.c
+--- coreutils-6.12/src/seq.c	2008-05-26 06:40:32.000000000 +0000
++++ coreutils-6.12-patched/src/seq.c	2026-06-15 23:13:09.000000000 +0000
+@@ -153,6 +153,7 @@
+ 
+   if (! arg[strcspn (arg, "xX")] && isfinite (ret.value))
+     {
++      char const *e;
+       char const *decimal_point = strchr (arg, '.');
+       if (! decimal_point)
+ 	ret.precision = 0;
+@@ -166,7 +167,7 @@
+ 			: (decimal_point == arg                /* .#  -> 0.# */
+ 			   || ! ISDIGIT (decimal_point[-1]))); /* -.# -> 0.# */
+ 	}
+-      char const *e = strchr (arg, 'e');
++      e = strchr (arg, 'e');
+       if (! e)
+ 	e = strchr (arg, 'E');
+       if (e)
+@@ -343,13 +344,14 @@
+     {
+       if (equal_width)
+ 	{
++	  size_t width;
+ 	  /* increase first_width by any increased precision in step */
+ 	  size_t first_width = first.width + (prec - first.precision);
+ 	  /* adjust last_width to use precision from first/step */
+ 	  size_t last_width = last.width + (prec - last.precision);
+ 	  if (last.precision && prec == 0)
+ 	    last_width--;  /* don't include space for '.' */
+-	  size_t width = MAX (first_width, last_width);
++	  width = MAX (first_width, last_width);
+ 	  if (width <= INT_MAX)
+ 	    {
+ 	      int w = width;
+@@ -443,8 +445,9 @@
+ 
+   if (format_str)
+     {
++      char const *f;
+       validate_format (format_str);
+-      char const *f = long_double_format (format_str, &layout);
++      f = long_double_format (format_str, &layout);
+       if (! f)
+ 	{
+ 	  error (0, 0, _("invalid format string: %s"), quote (format_str));
+diff -Naur coreutils-6.12/src/shred.c coreutils-6.12-patched/src/shred.c
+--- coreutils-6.12/src/shred.c	2008-05-26 06:40:33.000000000 +0000
++++ coreutils-6.12-patched/src/shred.c	2026-06-15 22:49:15.000000000 +0000
+@@ -461,6 +461,7 @@
+ 		     out.  Thus, it shouldn't give up on bad blocks.  This
+ 		     code works because lim is always a multiple of
+ 		     SECTOR_SIZE, except at the end.  */
++		  {
+ 		  verify (sizeof r % SECTOR_SIZE == 0);
+ 		  if (errnum == EIO && 0 <= size && (soff | SECTOR_MASK) < lim)
+ 		    {
+@@ -474,6 +475,7 @@
+ 			}
+ 		      error (0, errno, _("%s: lseek failed"), qname);
+ 		    }
++		  }
+ 		  return -1;
+ 		}
+ 	    }
+diff -Naur coreutils-6.12/src/sort.c coreutils-6.12-patched/src/sort.c
+--- coreutils-6.12/src/sort.c	2008-05-26 06:40:32.000000000 +0000
++++ coreutils-6.12-patched/src/sort.c	2026-06-15 23:03:57.000000000 +0000
+@@ -63,6 +63,10 @@
+ # include <langinfo.h>
+ #endif
+ 
++#if (AMIX)
++# include <langinfo.h>
++#endif
++
+ /* Use SA_NOCLDSTOP as a proxy for whether the sigaction machinery is
+    present.  */
+ #ifndef SA_NOCLDSTOP
+diff -Naur coreutils-6.12/src/wc.c coreutils-6.12-patched/src/wc.c
+--- coreutils-6.12/src/wc.c	2008-05-26 06:40:32.000000000 +0000
++++ coreutils-6.12-patched/src/wc.c	2026-07-06 01:18:14.000000000 +0000
+@@ -19,6 +19,15 @@
+ 
+ #include <config.h>
+ 
++#if !defined(AMIX)
++
++#ifndef HAVE_WINT_T
++# define HAVE_WINT_T 1
++typedef int wint_t;
++#endif
++
++#endif
++
+ #include <stdio.h>
+ #include <getopt.h>
+ #include <sys/types.h>

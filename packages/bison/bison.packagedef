@@ -1,0 +1,15 @@
+packageSource=bison-2.7.1.tar.gz
+packageFile=bison-2.7.1.tar.gz
+packageChecksum=63eb483615274ed7c4dd095bf65d7775
+packageExtraction=guntarsystemhelper.sh
+packageDir=bison-2.7.1
+packagePatch=bison.amixfixes.patch
+
+expectedToolList=
+dependenciesList=coreutils,flex
+envModifs=setupenv.sh
+configureRecipe=configureit
+buildRecipe=buildit
+installRecipe=installit
+passesChecksIndicator=1
+compilers=gcc

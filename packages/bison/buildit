@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+
+BUILDDIR=$1
+INSTALLDIR=$2
+EXTRAARGS=$3
+echo $BUILDDIR
+echo $INSTALLDIR
+echo $EXTRAARGS
+. ./setupenv.sh
+cd $BUILDDIR || exit -1
+make MAKEINFO=true || exit -1
+exit 0

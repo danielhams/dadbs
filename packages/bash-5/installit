@@ -1,0 +1,16 @@
+#!/usr/bin/env sh
+
+BUILDDIR=$1
+INSTALLDIR=$2
+EXTRAARGS=$3
+echo $BUILDDIR
+echo $INSTALLDIR
+echo $EXTRAARGS
+. ./setupenv.sh
+cd $BUILDDIR || exit -1
+make install || exit -1
+# Copy to the side for clarity
+cd $INSTALLDIR/bin || exit -1
+cp bash bash-5 || exit -1
+cp -f bashbug bashbug-5 || exit -1
+exit 0

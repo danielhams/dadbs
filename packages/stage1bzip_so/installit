@@ -1,4 +1,4 @@
-#!/usr/gnutc/bin/sh
+#!/usr/bin/env sh
 
 BUILDDIR=$1
 INSTALLDIR=$2
@@ -8,7 +8,7 @@ echo $INSTALLDIR
 echo $EXTRAARGS
 . ./setupenv.sh
 cd $BUILDDIR || exit -1
-cp libbz2.so.* $INSTALLDIR/$DIDBS_LIBDIR/ || exit -1
+cp libbz2.so.* $INSTALLDIR/$DADBS_LIBDIR/ || exit -1
 cp bzip2-shared $INSTALLDIR/bin/bzip2 || exit -1
 # bzip does this stupid thing where it puts the library in the root of the
 # prefix - so let's move it

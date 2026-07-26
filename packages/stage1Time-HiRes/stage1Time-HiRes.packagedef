@@ -1,0 +1,14 @@
+packageSource=Time-HiRes-01.19.tar.gz
+packageFile=Time-HiRes-01.19.tar.gz
+packageChecksum=a5e998ae90b83c172edd6ef43943c86d
+packageExtraction=tarxfsystemhelper.sh
+packageDir=Time-HiRes-01.19
+packagePatch=Time-HiRes.amixfixes.patch
+expectedToolList=
+dependenciesList=stage1perl
+envModifs=setupenv.sh
+configureRecipe=configureit
+buildRecipe=buildit
+installRecipe=installit
+passesChecksIndicator=1
+compilers=gcc

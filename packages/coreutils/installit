@@ -1,0 +1,39 @@
+#!/usr/bin/env sh
+
+BUILDDIR=$1
+INSTALLDIR=$2
+EXTRAARGS=$3
+echo $BUILDDIR
+echo $INSTALLDIR
+echo $EXTRAARGS
+. ./setupenv.sh
+cd $BUILDDIR || exit -1
+
+make install || exit -1
+
+# Convert the comma-separated blacklist into a space-separated list for the loop
+BLACKLIST_CLEAN=`echo "$NO_INSTALL_PROGS" | tr ',' ' '`
+echo "Curating $INSTALLDIR..."
+
+for prog in $BLACKLIST_CLEAN; do
+    # 1. Attempt to remove the binary from the bin directory
+    if [ -f "$INSTALLDIR/bin/$prog" ]; then
+        echo "  - Removing binary: $prog"
+        rm -f "$INSTALLDIR/bin/$prog"
+    fi
+
+    # 2. Attempt to remove the manpage
+    # Note: We check both 'man' and 'share/man' to be safe against varying
+    # defaults
+    for mandir in "man" "share/man"; do
+        MANFILE="$INSTALLDIR/$mandir/man1/$prog.1"
+        if [ -f "$MANFILE" ]; then
+            echo "  - Removing manpage: $prog.1"
+            rm -f "$MANFILE"
+        fi
+    done
+done
+
+echo "Curation complete."
+
+exit 0

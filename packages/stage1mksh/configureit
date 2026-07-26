@@ -1,0 +1,28 @@
+#!/usr/bin/env sh
+
+BUILDDIR=$1
+INSTALLDIR=$2
+EXTRAARGS=$3
+echo $BUILDDIR
+echo $INSTALLDIR
+echo $EXTRAARGS
+. ./setupenv.sh
+cd $BUILDDIR || exit -1
+
+# Early exit for patch building
+#exit 1
+
+# Setting CONFIG_SHELL seems to cause issues with CPU regressions
+
+RESOLVED_SHELL=`which sh 2>/dev/null || command -v sh`
+if [ -z "$RESOLVED_SHELL" ]; then
+    echo "ERROR: Could not resolve absolute path for 'sh'."
+    exit -1
+fi
+
+export SHELL="$RESOLVED_SHELL"
+unset CONFIG_SHELL
+
+# No configure it for mksh - they have a "Build.sh" script.
+#./configure --prefix=$INSTALLDIR || exit -1
+exit 0

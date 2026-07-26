@@ -1,4 +1,4 @@
-#!/usr/gnutc/bin/sh
+#!/usr/bin/env sh
 
 BUILDDIR=$1
 INSTALLDIR=$2
@@ -8,5 +8,5 @@ echo $INSTALLDIR
 echo $EXTRAARGS
 . ./setupenv.sh
 cd $BUILDDIR || exit -1
-make -j $DIDBS_JOBS|| exit -1
+make || exit -1
 exit 0

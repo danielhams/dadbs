@@ -1,0 +1,15 @@
+packageSource=diffutils-3.5.tar.gz
+packageFile=diffutils-3.5.tar.gz
+packageChecksum=be14e16987e22ae70183e026b76b5110
+packageExtraction=guntarsystemhelper.sh
+packageDir=diffutils-3.5
+packagePatch=diffutils.amixfixes.patch
+
+expectedToolList=
+dependenciesList=coreutils
+envModifs=setupenv.sh
+configureRecipe=configureit
+buildRecipe=buildit
+installRecipe=installit
+passesChecksIndicator=1
+compilers=gcc

@@ -1,0 +1,14 @@
+#!/usr/bin/env sh
+
+BUILDDIR=$1
+INSTALLDIR=$2
+EXTRAARGS=$3
+echo $BUILDDIR
+echo $INSTALLDIR
+echo $EXTRAARGS
+. ./setupenv.sh
+cd $BUILDDIR || exit -1
+# No make install for mksh - we have to manually copy the binary
+#make install || exit -1
+cp mksh $INSTALLDIR/bin/ || exit -1
+exit 0

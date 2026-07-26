@@ -1,4 +1,4 @@
-#!/usr/gnutc/bin/sh
+#!/usr/bin/env sh
 
 BUILDDIR=$1
 INSTALLDIR=$2
@@ -9,12 +9,17 @@ echo $INSTALLDIR
 echo $EXTRAARGS
 # no configure for bzip
 # but we must re-write the Makefile to use the correct
-# DIDBS_LIBDIR
+# DADBS_LIBDIR
 cd $BUILDDIR
-REPLACE_STRING="s|FIX\)\/lib|FIX\)\/$DIDBS_LIBDIR|g"
+# set the libdir correctly
+REPLACE_STRING="s|FIX\)\/lib|FIX\)\/$DADBS_LIBDIR|g"
 #echo "Replacing with $REPLACE_STRING"
-/usr/dadbsbootstrap/bin/perl -pi -e $REPLACE_STRING Makefile-libbz2_so || exit 1
+perl -pi -e $REPLACE_STRING Makefile || exit 1
+# Switch to our CFLAGS
 REPLACE_STRING="s|\-O2\s\-g|\-Os|g"
-/usr/dadbsbootstrap/bin/perl -pi -e $REPLACE_STRING Makefile-libbz2_so || exit 1
+perl -pi -e $REPLACE_STRING Makefile || exit 1
+# Avoid "cp -f"
+REPLACE_STRING="s|cp\s\-f|cp|g"
+perl -pi -e $REPLACE_STRING Makefile || exit 1
 
 exit 0

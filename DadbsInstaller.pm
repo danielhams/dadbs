@@ -36,9 +36,15 @@ sub installit
     my $packageId = $self->{packageId};
     dadbsprint "Installing $packageId\n";
 
+    my $rootbuilddir = "$self->{buildDir}/$packageId";
+    if(!-d $rootbuilddir) {
+	die "Missing expected directory '$rootbuilddir' as target: $!\n";
+    }
+    my $outputlogfile = "$rootbuilddir/install.log";
+
     my $builddir = "$self->{buildDir}/$self->{packageId}/$self->{dadbsPackage}->{packageDir}";
     my $installdir = $self->{installDir};
-    dadbsprint "Build is in $builddir\n";
+    dadbsprint "Install is in $builddir\n";
     my $extraargs;
     if( begins_with($packageId,"stage1") )
     {
@@ -52,8 +58,8 @@ sub installit
     dadbsprint "Changing directory to $packageDefDir\n";
     chdir $packageDefDir;
 
-    my $installRecipe = "$self->{packageDefsDir}/$self->{packageId}/$self->{dadbsPackage}->{installRecipe}";
-    my $cmd = "$installRecipe $builddir $installdir $extraargs";
+    my $installRecipe = "$self->{dadbsPackage}->{installRecipe}";
+    my $cmd = "./$installRecipe $builddir $installdir $extraargs 1>$outputlogfile 2>&1";
     dadbsprint "About to execute $cmd\n";
     system($cmd) == 0 || die $!;
 

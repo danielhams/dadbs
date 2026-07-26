@@ -1,4 +1,4 @@
-#!/usr/gnutc/bin/bash
+#!/usr/bin/env bash
 
 SCRIPTLOCATION=$1;
 PACKAGEID=$2;
@@ -17,9 +17,12 @@ echo "INSTALLDIR=$INSTALLDIR"
 echo "ENVMODIFS=$ENVMODIFS"
 
 cd $PACKAGEDIR || exit 1
-. $ENVMODIFS
+
+. ./$ENVMODIFS
+
 cd $BUILDDIR || exit 1
 PWD=`pwd`
 echo "Current directory is $PWD"
+echo "bs SHELL is $SHELL"
 export PS1
 exec bash --norc -i

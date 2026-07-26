@@ -1,0 +1,14 @@
+packageSource=mksh-R57.tgz
+packageFile=mksh-R57.tgz
+packageChecksum=4d2686535252ea6a57bdec531498239a
+packageDir=mksh
+packagePatch=mksh.amixfixes.patch
+packageExtraction=tarxfsystemhelper.sh
+expectedToolList=
+dependenciesList=stage1make,stage1tar,stage1gzip
+envModifs=setupenv.sh
+configureRecipe=configureit
+buildRecipe=buildit
+installRecipe=installit
+passesChecksIndicator=1
+compilers=gcc

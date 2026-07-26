@@ -1,0 +1,30 @@
+#!/usr/bin/env sh
+
+BUILDDIR=$1
+INSTALLDIR=$2
+EXTRAARGS=$3
+echo $BUILDDIR
+echo $INSTALLDIR
+echo $EXTRAARGS
+. ./setupenv.sh
+cd $BUILDDIR || exit -1
+# Remove existing binaries/symlinks so we don't have to deal with
+# AMIX issues of "ln -s -f"
+echo "Cleaning up existing bzip2 binaries in $INSTALLDIR/bin"
+rm $INSTALLDIR/bin/bzip2
+rm $INSTALLDIR/bin/bunzip2
+rm $INSTALLDIR/bin/bzcat
+rm $INSTALLDIR/bin/bzip2recover
+rm $INSTALLDIR/bin/bzgrep
+rm $INSTALLDIR/bin/bzegrep
+rm $INSTALLDIR/bin/bzfgrep
+rm $INSTALLDIR/bin/bzmore
+rm $INSTALLDIR/bin/bzless
+rm $INSTALLDIR/bin/bzdiff
+rm $INSTALLDIR/bin/bzcmp
+
+make install PREFIX=$INSTALLDIR || exit 1
+# bzip does this stupid thing where it puts the library in the root of the
+# prefix - so let's move it
+mv $INSTALLDIR/libbz2.a $INSTALLDIR/lib/ || exit 1
+exit 0

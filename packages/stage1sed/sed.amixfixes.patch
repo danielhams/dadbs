@@ -25,7 +25,7 @@ diff -Naur sed-4.2.2/testsuite/Makefile.tests sed-4.2.2-patched/testsuite/Makefi
  # Testsuite makefile for GNU sed
  
 -SHELL = /bin/sh
-+SHELL = /usr/gnutc/bin/mksh
++SHELL = /usr/dadbs/current/bin/mksh
  
  # These are only fallback values. They are usually overridden by runtest.
  srcdir = .

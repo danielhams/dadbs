@@ -1,0 +1,14 @@
+packageSource=gdb-5.3.tar.gz
+packageFile=gdb-5.3.tar.gz
+packageChecksum=1e8566325f222edfbdd93e40c6ae921b
+packageExtraction=tarxfsystemhelper.sh
+packageDir=gdb-5.3
+packagePatch=gdb.amixfixes.patch
+expectedToolList=
+dependenciesList=stage1gcc,stage1mksh,stage1patch,stage1Digest-MD5,stage1Time-HiRes,stage1Getopt-ArgvFile,stage1Digest-SHA,stage1libiconv
+envModifs=setupenv.sh
+configureRecipe=configureit
+buildRecipe=buildit
+installRecipe=installit
+passesChecksIndicator=1
+compilers=gcc

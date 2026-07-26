@@ -1,4 +1,4 @@
-#!/usr/gnutc/bin/sh
+#!/usr/bin/env sh
 
 BUILDDIR=$1
 INSTALLDIR=$2
@@ -11,7 +11,6 @@ cd $BUILDDIR || exit -1
 
 # Early exit for patch generation
 #exit 1
-unset CONFIG_SHELL
 
-./configure --prefix=$INSTALLDIR --disable-nls --disable-silent-rules || exit -1
+$SHELL ./configure --prefix=$INSTALLDIR --disable-nls --disable-silent-rules || exit -1
 exit 0

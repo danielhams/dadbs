@@ -34,25 +34,23 @@ sub configureit
     my $packageId = $self->{packageId};
     dadbsprint "Configuring $packageId\n";
 
-    my $builddir = "$self->{buildDir}/$packageId/$self->{dadbsPackage}->{packageDir}";
-    dadbsprint "Would configure in $builddir\n";
+    my $rootbuilddir = "$self->{buildDir}/$packageId";
+    if(!-d $rootbuilddir) {
+	die "Missing expected directory '$rootbuilddir' as target: $!\n";
+    }
+    my $outputlogfile = "$rootbuilddir/configure.log";
+
+    my $builddir = "$rootbuilddir/$self->{dadbsPackage}->{packageDir}";
+    dadbsprint "Configuring in $builddir...\n";
     my $installdir = $self->{installDir};
     my $extraargs;
-#    dadbsprint "Checking if $packageId begins with stage1.\n";
-#    if( begins_with($packageId,"stage1") )
-#    {
-#	$extraargs="/usr/dadbs/current";
-#    }
-#    else
-#    {
-	$extraargs=$self->{scriptLocation};
-#    }
+    $extraargs=$self->{scriptLocation};
     my $packageDefDir = $self->{packageDefsDir} . "/" . $packageId;
     dadbsprint "Changing directory to $packageDefDir\n";
     chdir $packageDefDir;
 
-    my $configureRecipe = "$self->{packageDefsDir}/$packageId/$self->{dadbsPackage}->{configureRecipe}";
-    my $cmd = "$configureRecipe $builddir $installdir $extraargs";
+    my $configureRecipe = "$self->{dadbsPackage}->{configureRecipe}";
+    my $cmd = "./$configureRecipe $builddir $installdir $extraargs 1>$outputlogfile 2>&1";
     dadbsprint "About to execute $cmd\n";
     system($cmd) == 0 || die $!;
 

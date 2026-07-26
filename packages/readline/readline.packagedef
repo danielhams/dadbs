@@ -1,0 +1,15 @@
+packageSource=readline-8.0.tar.gz
+packageFile=readline-8.0.tar.gz
+packageChecksum=7e6c1f16aee3244a69aba6e438295ca3
+packageExtraction=guntarsystemhelper.sh
+packageDir=readline-8.0
+#packagePatch=readline.amixfixes.patch
+
+expectedToolList=
+dependenciesList=coreutils
+envModifs=setupenv.sh
+configureRecipe=configureit
+buildRecipe=buildit
+installRecipe=installit
+passesChecksIndicator=1
+compilers=gcc

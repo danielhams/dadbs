@@ -30,11 +30,11 @@ sub writeDependencies
     @filteredPackages =();
 
     %depsToIgnore = {};
-    $depsToIgnore{"make"} = 1;
-    $depsToIgnore{"tar"} = 1;
-    $depsToIgnore{"bzip"} = 1;
-    $depsToIgnore{"xz"} = 1;
-    $depsToIgnore{"gzip"} = 1;
+    #$depsToIgnore{"make"} = 1;
+    #$depsToIgnore{"tar"} = 1;
+    #$depsToIgnore{"bzip"} = 1;
+    #$depsToIgnore{"xz"} = 1;
+    #$depsToIgnore{"gzip"} = 1;
 
     foreach $pkgRef (@foundPackages)
     {
@@ -47,8 +47,11 @@ sub writeDependencies
 	my $replDeps = "";
 	foreach $depId (@depIds)
 	{
+#	    if( 
+#		rindex($depId,"stage1",0) == -1 &&
+#		!defined($depsToIgnore{$depId})
+#	      )
 	    if( 
-		rindex($depId,"stage1",0) == -1 &&
 		!defined($depsToIgnore{$depId})
 	      )
 	    {
@@ -60,10 +63,10 @@ sub writeDependencies
 	    }
 	}
 	$pkg->{dependenciesList} = $replDeps;
-	if( rindex($packageId, "stage1",0) == -1 )
-	{
+#	if( rindex($packageId, "stage1",0) == -1 )
+#	{
 	    push @filteredPackages, $pkgRef;
-	}
+#	}
     }
 
     open(DOT_OUT, '>'.$self->{scriptLocation}."/deps.dot") || die $!;

@@ -1,4 +1,4 @@
-#!/usr/dadbs/current/bin/bash
+#!/usr/bin/env bash
 
 DESTDIR=$1;
 SOURCEARCHIVE=$2;

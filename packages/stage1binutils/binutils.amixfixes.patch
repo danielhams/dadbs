@@ -1,0 +1,541 @@
+diff -Naur binutils-2.8.1/bfd/doc/Makefile.in binutils-2.8.1-patched/bfd/doc/Makefile.in
+--- binutils-2.8.1/bfd/doc/Makefile.in	1997-05-26 18:34:09.000000000 +0100
++++ binutils-2.8.1-patched/bfd/doc/Makefile.in	2026-07-02 00:28:38.000000000 +0100
+@@ -113,10 +113,11 @@
+ 	  dir=.; \
+ 	else \
+ 	  dir=$(srcdir); \
+-	fi; \
+-	for i in `cd $$dir; echo *.info*`; do \
+-	  $(INSTALL_DATA) $$dir/$$i $(infodir)/$$i; \
+-	done
++	fi;
++#	fi; \
++#	for i in `cd $$dir; echo *.info*`; do \
++#	  $(INSTALL_DATA) $$dir/$$i $(infodir)/$$i; \
++#	done
+ 
+ docs: $(MKDOC) protos bfd.info bfd.dvi bfd.ps
+ 
+diff -Naur binutils-2.8.1/configure binutils-2.8.1-patched/configure
+--- binutils-2.8.1/configure	1997-05-26 18:34:47.000000000 +0100
++++ binutils-2.8.1-patched/configure	2026-06-24 22:08:49.000000000 +0100
+@@ -488,7 +488,7 @@
+ esac
+ 
+ ### break up ${srcdir}/configure.in.
+-case "`grep '^# per\-host:' ${srcdir}/configure.in`" in
++case "`grep '^# per-host:' ${srcdir}/configure.in`" in
+ "")
+         echo '***' ${srcdir}/configure.in has no \"per-host:\" line. 1>&2
+ 	# Check for a directory that's been converted to use autoconf since
+@@ -524,7 +524,7 @@
+ *) ;;
+ esac
+ 
+-case "`grep '^# per\-target:' ${srcdir}/configure.in`" in
++case "`grep '^# per-target:' ${srcdir}/configure.in`" in
+ "")
+         echo '***' ${srcdir}/configure.in has no \"per-target:\" line. 1>&2
+         exit 1
+@@ -548,13 +548,13 @@
+ 
+ # split ${srcdir}/configure.in into common, per-host, per-target,
+ # and post-target parts.  Post-target is optional.
+-sed -e '/^# per\-host:/,$d' ${srcdir}/configure.in > ${tmpfile}.com
+-sed -e '1,/^# per\-host:/d' -e '/^# per\-target:/,$d' ${srcdir}/configure.in > ${tmpfile}.hst
++sed -e '/^# per-host:/,$d' ${srcdir}/configure.in > ${tmpfile}.com
++sed -e '1,/^# per-host:/d' -e '/^# per-target:/,$d' ${srcdir}/configure.in > ${tmpfile}.hst
+ if grep '^# post-target:' ${srcdir}/configure.in >/dev/null ; then
+-  sed -e '1,/^# per\-target:/d' -e '/^# post\-target:/,$d' ${srcdir}/configure.in > ${tmpfile}.tgt
+-  sed -e '1,/^# post\-target:/d' ${srcdir}/configure.in > ${tmpfile}.pos
++  sed -e '1,/^# per-target:/d' -e '/^# post-target:/,$d' ${srcdir}/configure.in > ${tmpfile}.tgt
++  sed -e '1,/^# post-target:/d' ${srcdir}/configure.in > ${tmpfile}.pos
+ else
+-  sed -e '1,/^# per\-target:/d' ${srcdir}/configure.in > ${tmpfile}.tgt
++  sed -e '1,/^# per-target:/d' ${srcdir}/configure.in > ${tmpfile}.tgt
+   echo >${tmpfile}.pos
+ fi
+ 
+diff -Naur binutils-2.8.1/gas/config/obj-elf.h binutils-2.8.1-patched/gas/config/obj-elf.h
+--- binutils-2.8.1/gas/config/obj-elf.h	1997-05-26 18:32:36.000000000 +0100
++++ binutils-2.8.1-patched/gas/config/obj-elf.h	2026-06-24 22:08:49.000000000 +0100
+@@ -58,6 +58,7 @@
+ /* Don't change this; change ELF_TARGET_SYMBOL_FIELDS instead.  */
+ #define TARGET_SYMBOL_FIELDS ELF_TARGET_SYMBOL_FIELDS
+ 
++#include "write.h"
+ #include "targ-cpu.h"
+ 
+ #ifndef FALSE
+diff -Naur binutils-2.8.1/gas/config/tc-m68k.c binutils-2.8.1-patched/gas/config/tc-m68k.c
+--- binutils-2.8.1/gas/config/tc-m68k.c	1997-05-26 18:32:39.000000000 +0100
++++ binutils-2.8.1-patched/gas/config/tc-m68k.c	2026-06-24 22:08:50.000000000 +0100
+@@ -31,11 +31,15 @@
+    pre-processor is disabled, these aren't very useful.  The macro
+    tc_comment_chars points to this.  We use this, rather than the
+    usual comment_chars, so that the --bitwise-or option will work.  */
++/*
+ #if defined (TE_SVR4) || defined (TE_DELTA)
+ const char *m68k_comment_chars = "|#";
+ #else
++*/
+ const char *m68k_comment_chars = "|";
++/*
+ #endif
++*/
+ 
+ /* This array holds the chars that only start a comment at the beginning of
+    a line.  If the line seems to have the form '# 123 filename'
+diff -Naur binutils-2.8.1/gas/config/tc-m68k.h binutils-2.8.1-patched/gas/config/tc-m68k.h
+--- binutils-2.8.1/gas/config/tc-m68k.h	1997-05-26 18:32:39.000000000 +0100
++++ binutils-2.8.1-patched/gas/config/tc-m68k.h	2026-06-24 22:08:50.000000000 +0100
+@@ -198,7 +198,9 @@
+ #define TARGET_WORD_SIZE 32
+ #define TARGET_ARCH bfd_arch_m68k
+ 
++/*
+ extern struct relax_type md_relax_table[];
++*/
+ #define TC_GENERIC_RELAX_TABLE md_relax_table
+ 
+ /* Copied from write.c */
+diff -Naur binutils-2.8.1/gas/doc/Makefile.in binutils-2.8.1-patched/gas/doc/Makefile.in
+--- binutils-2.8.1/gas/doc/Makefile.in	1997-05-26 18:32:43.000000000 +0100
++++ binutils-2.8.1-patched/gas/doc/Makefile.in	2026-07-02 00:28:20.000000000 +0100
+@@ -96,19 +96,21 @@
+ 	  dir=. ; \
+ 	else \
+ 	  dir=$(srcdir) ; \
+-	fi ; \
+-	for i in `cd $$dir ; echo as.info*` ; do \
+-		$(INSTALL_DATA) $$dir/$$i $(infodir)/$$i ; \
+-	done
++	fi ;
++#	fi ; \
++#	for i in `cd $$dir ; echo as.info*` ; do \
++#		$(INSTALL_DATA) $$dir/$$i $(infodir)/$$i ; \
++#	done
+ install-info-gasp: gasp.info
+ 	if [ -r gasp.info ]; then \
+ 	  dir=. ; \
+ 	else \
+ 	  dir=$(srcdir) ; \
+-	fi ; \
+-	for i in `cd $$dir ; echo gasp.info*` ; do \
+-		$(INSTALL_DATA) $$dir/$$i $(infodir)/$$i ; \
+-	done
++	fi ;
++#	fi ; \
++#	for i in `cd $$dir ; echo gasp.info*` ; do \
++#		$(INSTALL_DATA) $$dir/$$i $(infodir)/$$i ; \
++#	done
+ 
+ as.dvi:	$(srcdir)/as.texinfo asconfig.texi
+ 	TEXINPUTS=$(srcdir):$(TEXIDIR):$$TEXINPUTS MAKEINFO='$(MAKEINFO) -I$(srcdir)' \
+diff -Naur binutils-2.8.1/gas/write.c binutils-2.8.1-patched/gas/write.c
+--- binutils-2.8.1/gas/write.c	1997-05-26 18:32:51.000000000 +0100
++++ binutils-2.8.1-patched/gas/write.c	2026-06-24 22:08:50.000000000 +0100
+@@ -22,6 +22,9 @@
+ /* This thing should be set up to do byteordering correctly.  But... */
+ 
+ #include "as.h"
++
++extern relax_typeS md_relax_table[];
++
+ #include "subsegs.h"
+ #include "obstack.h"
+ #include "output-file.h"
+diff -Naur binutils-2.8.1/gas/write.h binutils-2.8.1-patched/gas/write.h
+--- binutils-2.8.1/gas/write.h	1997-05-26 18:32:51.000000000 +0100
++++ binutils-2.8.1-patched/gas/write.h	2026-06-24 22:08:50.000000000 +0100
+@@ -18,6 +18,9 @@
+    Software Foundation, 59 Temple Place - Suite 330, Boston, MA
+    02111-1307, USA.  */
+ 
++#ifndef WRITE_H
++#define WRITE_H
++
+ #ifndef TC_I960
+ #ifdef hpux
+ #define EXEC_MACHINE_TYPE HP9000S200_ID
+@@ -87,16 +90,16 @@
+   unsigned fx_signed : 1;
+ 
+   /* Which frag does this fix apply to?  */
+-  fragS *fx_frag;
++  struct frag *fx_frag;
+ 
+   /* Where is the first byte to fix up?  */
+   long fx_where;
+ 
+   /* NULL or Symbol whose value we add in. */
+-  symbolS *fx_addsy;
++  struct symbol *fx_addsy;
+ 
+   /* NULL or Symbol whose value we subtract. */
+-  symbolS *fx_subsy;
++  struct symbol *fx_subsy;
+ 
+   /* Absolute number we add in. */
+   valueT fx_offset;
+@@ -174,11 +177,11 @@
+ extern void number_to_chars_bigendian    PARAMS ((char *, valueT, int));
+ 
+ #ifdef BFD_ASSEMBLER
+-extern fixS *fix_new
+-  PARAMS ((fragS * frag, int where, int size, symbolS * add_symbol,
++extern struct fix *fix_new
++  PARAMS ((struct frag * frag, int where, int size, struct symbol * add_symbol,
+ 	   offsetT offset, int pcrel, bfd_reloc_code_real_type r_type));
+-extern fixS *fix_new_exp
+-  PARAMS ((fragS * frag, int where, int size, expressionS *exp, int pcrel,
++extern struct fix *fix_new_exp
++  PARAMS ((struct frag * frag, int where, int size, expressionS *exp, int pcrel,
+ 	   bfd_reloc_code_real_type r_type));
+ #else
+ extern fixS *fix_new
+@@ -192,3 +195,5 @@
+ extern void write_print_statistics PARAMS ((FILE *));
+ 
+ /* end of write.h */
++
++#endif
+diff -Naur binutils-2.8.1/ld/configure.tgt binutils-2.8.1-patched/ld/configure.tgt
+--- binutils-2.8.1/ld/configure.tgt	1997-05-26 18:34:49.000000000 +0100
++++ binutils-2.8.1-patched/ld/configure.tgt	2026-06-24 22:08:50.000000000 +0100
+@@ -109,6 +109,7 @@
+ m68*-*-aout)		targ_emul=m68kaout ;;
+ m68*-*-coff)		targ_emul=m68kcoff ;;
+ m68*-*-elf)		targ_emul=m68kelf ;;
++m68*-*-sysv4)		targ_emul=m68kelf ;;
+ m68*-*-hpux*)		targ_emul=hp3hpux ;;
+ m68k-*-linux*aout*)	targ_emul=m68klinux
+ 			targ_extra_emuls=m68kelf
+diff -Naur binutils-2.8.1/opcodes/m68k-dis.c binutils-2.8.1-patched/opcodes/m68k-dis.c
+--- binutils-2.8.1/opcodes/m68k-dis.c	1997-05-26 18:34:19.000000000 +0100
++++ binutils-2.8.1-patched/opcodes/m68k-dis.c	2026-06-24 22:08:50.000000000 +0100
+@@ -644,119 +644,118 @@
+     case '|':
+     case '<':
+     case '>':
+-
+-      if (place == 'd')
+-	{
+-	  val = fetch_arg (buffer, 'x', 6, info);
+-	  val = ((val & 7) << 3) + ((val >> 3) & 7);
+-	}
+-      else
+-	val = fetch_arg (buffer, 's', 6, info);
+-
+-      /* Get register number assuming address register.  */
+-      regno = (val & 7) + 8;
+-      regname = reg_names[regno];
+-      switch (val >> 3)
+-	{
+-	case 0:
+-	  (*info->fprintf_func) (info->stream, "%s", reg_names[val]);
+-	  break;
+-
+-	case 1:
+-	  (*info->fprintf_func) (info->stream, "%s", regname);
+-	  break;
+-
+-	case 2:
+-	  (*info->fprintf_func) (info->stream, "%s@", regname);
+-	  break;
+-
+-	case 3:
+-	  (*info->fprintf_func) (info->stream, "%s@+", regname);
+-	  break;
+-
+-	case 4:
+-	  (*info->fprintf_func) (info->stream, "%s@-", regname);
+-	  break;
+-
+-	case 5:
+-	  val = NEXTWORD (p);
+-	  (*info->fprintf_func) (info->stream, "%s@(%d)", regname, val);
+-	  break;
+-
+-	case 6:
+-	  p = print_indexed (regno, p, addr, info);
+-	  break;
+-
+-	case 7:
+-	  switch (val & 7)
+-	    {
+-	    case 0:
+-	      val = NEXTWORD (p);
+-	      (*info->print_address_func) (val, info);
+-	      break;
+-
+-	    case 1:
+-	      val = NEXTLONG (p);
+-	      (*info->print_address_func) (val, info);
+-	      break;
+-
+-	    case 2:
+-	      val = NEXTWORD (p);
+-	      (*info->print_address_func) (addr + val, info);
+-	      break;
+-
+-	    case 3:
+-	      p = print_indexed (-1, p, addr, info);
+-	      break;
+-
+-	    case 4:
+-	      flt_p = 1;	/* Assume it's a float... */
+-	      switch( place )
+-	      {
+-		case 'b':
+-		  val = NEXTBYTE (p);
+-		  flt_p = 0;
+-		  break;
+-
+-		case 'w':
+-		  val = NEXTWORD (p);
+-		  flt_p = 0;
+-		  break;
+-
+-		case 'l':
+-		  val = NEXTLONG (p);
+-		  flt_p = 0;
+-		  break;
+-
+-		case 'f':
+-		  NEXTSINGLE(flval, p);
+-		  break;
+-
+-		case 'F':
+-		  NEXTDOUBLE(flval, p);
+-		  break;
+-
+-		case 'x':
+-		  NEXTEXTEND(flval, p);
+-		  break;
+-
+-		case 'p':
+-		  flval = NEXTPACKED(p);
+-		  break;
+-
+-		default:
+-		  return -1;
+-	      }
+-	      if ( flt_p )	/* Print a float? */
+-		(*info->fprintf_func) (info->stream, "#%g", flval);
+-	      else
+-		(*info->fprintf_func) (info->stream, "#%d", val);
+-	      break;
+-
+-	    default:
+-	      return -1;
+-	    }
+-	}
++        if (place == 'd')
++            {
++                val = fetch_arg (buffer, 'x', 6, info);
++                val = ((val & 7) << 3) + ((val >> 3) & 7);
++            }
++        else
++            val = fetch_arg (buffer, 's', 6, info);
++
++        /* Get register number assuming address register.  */
++        regno = (val & 7) + 8;
++        regname = reg_names[regno];
++        switch (val >> 3)
++            {
++            case 0:
++                (*info->fprintf_func) (info->stream, "%s", reg_names[val]);
++                break;
++
++            case 1:
++                (*info->fprintf_func) (info->stream, "%s", regname);
++                break;
++
++            case 2:
++                (*info->fprintf_func) (info->stream, "%s@", regname);
++                break;
++
++            case 3:
++                (*info->fprintf_func) (info->stream, "%s@+", regname);
++                break;
++
++            case 4:
++                (*info->fprintf_func) (info->stream, "%s@-", regname);
++                break;
++
++            case 5:
++                val = NEXTWORD (p);
++                (*info->fprintf_func) (info->stream, "%s@(%d)", regname, val);
++                break;
++
++            case 6:
++                p = print_indexed (regno, p, addr, info);
++                break;
++
++            case 7:
++                switch (val & 7)
++                    {
++                    case 0:
++                        val = NEXTWORD (p);
++                        (*info->print_address_func) (val, info);
++                        break;
++
++                    case 1:
++                        val = NEXTLONG (p);
++                        (*info->print_address_func) (val, info);
++                        break;
++
++                    case 2:
++                        val = NEXTWORD (p);
++                        (*info->print_address_func) (addr + val, info);
++                        break;
++
++                    case 3:
++                        p = print_indexed (-1, p, addr, info);
++                        break;
++
++                    case 4:
++                        flt_p = 1;	/* Assume it's a float... */
++                        switch( place )
++                            {
++                            case 'b':
++                                val = NEXTBYTE (p);
++                                flt_p = 0;
++                                break;
++
++                            case 'w':
++                                val = NEXTWORD (p);
++                                flt_p = 0;
++                                break;
++
++                            case 'l':
++                                val = NEXTLONG (p);
++                                flt_p = 0;
++                                break;
++
++                            case 'f':
++                                NEXTSINGLE(flval, p);
++                                break;
++
++                            case 'F':
++                                NEXTDOUBLE(flval, p);
++                                break;
++
++                            case 'x':
++                                NEXTEXTEND(flval, p);
++                                break;
++
++                            case 'p':
++                                flval = NEXTPACKED(p);
++                                break;
++
++                            default:
++                                return -1;
++                            }
++                        if ( flt_p )	/* Print a float? */
++                            (*info->fprintf_func) (info->stream, "#%g", flval);
++                        else
++                            (*info->fprintf_func) (info->stream, "#%d", val);
++                        break;
++
++                    default:
++                        return -1;
++                    }
++            }
+       break;
+ 
+     case 'L':
+diff -Naur binutils-2.8.1/opcodes/m68k-opc.c binutils-2.8.1-patched/opcodes/m68k-opc.c
+--- binutils-2.8.1/opcodes/m68k-opc.c	1997-05-26 18:34:19.000000000 +0100
++++ binutils-2.8.1-patched/opcodes/m68k-opc.c	2026-06-25 05:46:34.000000000 +0100
+@@ -293,6 +293,7 @@
+ {"dbvc",	one(0054310),	one(0177770), "DsBw", m68000up },
+ {"dbvs",	one(0054710),	one(0177770), "DsBw", m68000up },
+ 
++#if defined(BROKEN_AS_MOTOROLA_DIVS)
+ {"divsw",	one(0100700),		one(0170700), ";wDd", m68000up },
+ 
+ {"divsl", two(0046100,0006000),two(0177700,0107770),";lD3D1", m68020up|cpu32 },
+@@ -309,6 +310,48 @@
+ {"divull", two(0046100,0000000),two(0177700,0107770),";lD3D1",m68020up|cpu32 },
+ {"divull", two(0046100,0000000),two(0177700,0107770),";lDD",  m68020up|cpu32 },
+ 
++#elif defined(FIRST_ATTEMPT)
++/* Signed Division */
++{"divsw",  one(0100700),          one(0170700), ";wDd", m68000up },
++{"divsl",  two(0046100,0002000),  two(0177700,0107770),";lD3D1", m68020up|cpu32 }, /* 32/32 -> 32r:32q */
++{"divs.l", two(0046100,0006000),  two(0177700,0107770),";lD3D1", m68020up|cpu32 }, /* 64/32 -> 32r:32q */
++{"divs.l", two(0046100,0004000),  two(0177700,0107770),";lDD",   m68020up|cpu32 }, /* 32/32 -> 32q */
++
++/* Unsigned Division */
++{"divuw",  one(0100300),          one(0170700), ";wDd", m68000up },
++{"divul",  two(0046100,0000000),  two(0177700,0107770),";lD3D1", m68020up|cpu32 }, /* 32/32 -> 32r:32q */
++{"divu.l", two(0046100,0004000),  two(0177700,0107770),";lD3D1", m68020up|cpu32 }, /* 64/32 -> 32r:32q */
++{"divu.l", two(0046100,0000000),  two(0177700,0107770),";lDD",   m68020up|cpu32 }, /* 32/32 -> 32q */
++
++/* Maintain the 'll' aliases for old GNU code/GCC compatibility if needed */
++{"divsll", two(0046100,0006000),  two(0177700,0107770),";lD3D1", m68020up|cpu32 },
++{"divull", two(0046100,0004000),  two(0177700,0107770),";lD3D1", m68020up|cpu32 },
++#else
++
++{"divsw",   one(0100700),          one(0170700),         ";wDd",   m68000up },       /* Signed Division  */
++{"divs.l",  two(0046100,0004000),  two(0177700,0107770), ";lDD",   m68020up|cpu32 }, /* 32/32 -> 32q     */
++{"divs.l",  two(0046100,0006000),  two(0177700,0107770), ";lD3D1", m68020up|cpu32 }, /* 64/32 -> 32r:32q */
++{"divsl.l", two(0046100,0004000),  two(0177700,0107770), ";lDD",   m68020up|cpu32 }, /* 32/32 -> 32r:32q */
++{"divsl.l", two(0046100,0004000),  two(0177700,0107770), ";lD3D1", m68020up|cpu32 }, /* 32/32 -> 32r:32q */
++
++{"divuw",   one(0100300),          one(0170700),         ";wDd",   m68000up },       /* Unsigned Division */
++{"divu.l",  two(0046100,0000000),  two(0177700,0107770), ";lDD",   m68020up|cpu32 }, /* 32/32 -> 32q      */
++{"divu.l",  two(0046100,0002000),  two(0177700,0107770), ";lD3D1", m68020up|cpu32 }, /* 64/32 -> 32r:32q  */
++{"divul.l", two(0046100,0000000),  two(0177700,0107770), ";lDD",   m68020up|cpu32 }, /* 32/32 -> 32r:32q  */
++{"divul.l", two(0046100,0000000),  two(0177700,0107770), ";lD3D1", m68020up|cpu32 }, /* 32/32 -> 32r:32q  */
++
++/* Historical GNU aliases */
++{"divsl",   two(0046100,0004000),  two(0177700,0107770), ";lDD",   m68020up|cpu32 },
++{"divsl",   two(0046100,0006000),  two(0177700,0107770), ";lD3D1", m68020up|cpu32 },
++{"divul",   two(0046100,0000000),  two(0177700,0107770), ";lDD",   m68020up|cpu32 },
++{"divul",   two(0046100,0002000),  two(0177700,0107770), ";lD3D1", m68020up|cpu32 },
++{"divsll",  two(0046100,0004000),  two(0177700,0107770), ";lDD",   m68020up|cpu32 },
++{"divsll",  two(0046100,0004000),  two(0177700,0107770), ";lD3D1", m68020up|cpu32 },
++{"divull",  two(0046100,0000000),  two(0177700,0107770), ";lDD",   m68020up|cpu32 },
++{"divull",  two(0046100,0000000),  two(0177700,0107770), ";lD3D1", m68020up|cpu32 },
++
++#endif
++
+ {"eorib",	one(0005000),	one(0177700), "#b$s", m68000up },
+ {"eorib",	one(0005074),	one(0177777), "#bCs", m68000up },
+ {"eoriw",	one(0005100),	one(0177700), "#w$s", m68000up },
+@@ -1343,6 +1386,7 @@
+ {"move16",	one(0xf610),		one(0xfff8), "as_L", m68040up },
+ {"move16",	one(0xf618),		one(0xfff8), "_Las", m68040up },
+ 
++#if defined(BROKEN_AS_MOTOROLA_MULTS)
+ {"mulsw",	one(0140700),		one(0170700), ";wDd", m68000up|mcf5200 },
+ {"mulsl",	two(0046000,004000), two(0177700,0107770), ";lD1", m68020up|cpu32 },
+ {"mulsl",	two(0046000,004000), two(0177700,0107770), "DsD1", mcf5200 },
+@@ -1360,6 +1404,23 @@
+ {"mulul",	two(0046000,000000), two(0177700,0107770), "-sD1", mcf5200 },
+ {"mulul",	two(0046000,000000), two(0177700,0107770), "dsD1", mcf5200 },
+ {"mulul",	two(0046000,002000), two(0177700,0107770), ";lD3D1",m68020up|cpu32 },
++#else
++/* Signed Multiplies (68020+) */
++{"mulsw",   one(0140700),          one(0170700),         ";wDd",   m68000up|mcf5200}, /* Signed Multiply */
++{"mulsl",   two(0046000,0004000),  two(0177700,0107770), ";lD1",   m68020up|cpu32 },  /* 32/32 -> 32 */
++{"mulsl",   two(0046000,0006000),  two(0177700,0107770), ";lD3D1", m68020up|cpu32 },  /* 64/32 -> 64 */
++
++/* Unsigned Multiplies (68020+) */
++{"muluw",   one(0140300),          one(0170700),         ";wDd",   m68000up|mcf5200}, /* Unsigned Multiply */
++{"mulul",   two(0046000,0000000),  two(0177700,0107770), ";lD1",   m68020up|cpu32 },  /* 32/32 -> 32 */
++{"mulul",   two(0046000,0002000),  two(0177700,0107770), ";lD3D1", m68020up|cpu32 },  /* 64/32 -> 64 */
++
++/* Motorola standard mnemonics (aliases for the above) */
++{"muls.l",  two(0046000,0004000),  two(0177700,0107770), ";lD1",   m68020up|cpu32 },
++{"muls.l",  two(0046000,0006000),  two(0177700,0107770), ";lD3D1", m68020up|cpu32 },
++{"mulu.l",  two(0046000,0000000),  two(0177700,0107770), ";lD1",   m68020up|cpu32 },
++{"mulu.l",  two(0046000,0002000),  two(0177700,0107770), ";lD3D1", m68020up|cpu32 },
++#endif
+ 
+ {"nbcd",	one(0044000),	one(0177700), "$s", m68000up },
+ 

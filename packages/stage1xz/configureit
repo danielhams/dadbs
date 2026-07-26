@@ -1,4 +1,4 @@
-#!/usr/gnutc/bin/sh
+#!/usr/bin/env sh
 
 BUILDDIR=$1
 INSTALLDIR=$2
@@ -10,10 +10,12 @@ echo $EXTRAARGS
 cd $BUILDDIR || exit -1
 
 # Early exit for patch generation
-exit 1
+#exit 1
 
 # Package has been patched for c89 - but the autotools stuff still looks for
 # c99 - tell it not to look
-ac_cv_prog_cc_c99= $SHELL ./configure --prefix=$INSTALLDIR --disable-threads --enable-assume-ram=32 || exit -1
+export ACCEPT_INFERIOR_RM_PROGRAM=yes
+export ac_cv_prog_cc_c99=
+$SHELL ./configure --prefix=$INSTALLDIR --disable-threads --enable-assume-ram=32 || exit -1
 
 exit 0

@@ -1,0 +1,73 @@
+diff -Naur frotz-2.44/Makefile frotz-2.44-patched/Makefile
+--- frotz-2.44/Makefile	2015-05-20 09:29:14.000000000 +0000
++++ frotz-2.44-patched/Makefile	2026-06-05 02:02:53.000000000 +0000
+@@ -1,20 +1,21 @@
+ # Define your C compiler.  I recommend gcc if you have it.
+ # MacOS users should use "cc" even though it's really "gcc".
+ #
+-CC = gcc
++CC = /usr/gnutc/bin/gcc
+ #CC = cc
+ 
+ # Define your optimization flags.  Most compilers understand -O and -O2,
+ # Standard (note: Solaris on UltraSparc using gcc 2.8.x might not like this.)
+ #
+-OPTS = -O2
++#OPTS = -O2 -DSVR4 -I/usr/include -Drindex=strrchr
++OPTS = -O2 -DSVR4 -Drindex=strrchr
+ 
+ # Pentium with gcc 2.7.0 or better
+ #OPTS = -O2 -fomit-frame-pointer -malign-functions=2 -malign-loops=2 \
+ #-malign-jumps=2
+ 
+ # Define where you want Frotz installed.  Usually this is /usr/local
+-PREFIX = /usr/local
++PREFIX = /usr/gnutc
+ 
+ MAN_PREFIX = $(PREFIX)
+ #MAN_PREFIX = /usr/local/share
+@@ -24,7 +25,7 @@
+ 
+ # Define where you want Frotz to look for frotz.conf.
+ #
+-CONFIG_DIR = /usr/local/etc
++CONFIG_DIR = /usr/gnutc/etc
+ #CONFIG_DIR = /etc
+ #CONFIG_DIR = /usr/pkg/etc
+ #CONFIG_DIR =
+@@ -32,7 +33,7 @@
+ # Uncomment this if you want color support.  Most, but not all curses
+ # libraries that work with Frotz will support color.
+ #
+-COLOR_DEFS = -DCOLOR_SUPPORT
++#COLOR_DEFS = -DCOLOR_SUPPORT
+ 
+ # Uncomment this if you have an OSS soundcard driver and want classical
+ # Infocom sound support.
+@@ -68,12 +69,13 @@
+ #LIB = -L/usr/freeware/lib
+ #LIB = -L/5usr/lib
+ #LIB = -L/path/to/libncurses.so
++LIB = -L/usr/ccs/lib -lcurses -lc -lgen
+ 
+ # One of these must always be uncommented.  If your vendor-supplied
+ # curses library won't work, comment out the first option and uncomment
+ # the second.
+ #
+-CURSES = -lcurses
++CURSES =
+ #CURSES = -lncurses
+ 
+ # Uncomment this if your need to use ncurses instead of the
+diff -Naur frotz-2.44/src/curses/ux_blorb.c frotz-2.44-patched/src/curses/ux_blorb.c
+--- frotz-2.44/src/curses/ux_blorb.c	2015-05-20 09:29:14.000000000 +0000
++++ frotz-2.44-patched/src/curses/ux_blorb.c	2026-06-05 01:45:56.000000000 +0000
+@@ -1,7 +1,7 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+-#include <getopt.h>
++/* #include <getopt.h> */
+ #include <math.h>
+ #include <errno.h>
+ 

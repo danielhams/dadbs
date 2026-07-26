@@ -7,7 +7,7 @@ packageDir=make-3.80
 
 packageExtraction=guntarsystemhelper.sh
 expectedToolList=
-dependenciesList=
+dependenciesList=stage1smuggler
 envModifs=setupenv.sh
 configureRecipe=configureit
 buildRecipe=buildit

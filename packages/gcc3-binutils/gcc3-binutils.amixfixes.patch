@@ -1,0 +1,118 @@
+diff -Naur binutils-2.13.2.1/gas/config/tc-m68k.c binutils-2.13.2.1-patched/gas/config/tc-m68k.c
+--- binutils-2.13.2.1/gas/config/tc-m68k.c	2002-10-28 16:34:09.000000000 +0000
++++ binutils-2.13.2.1-patched/gas/config/tc-m68k.c	2026-07-22 16:36:31.000000000 +0100
+@@ -37,7 +37,7 @@
+    pre-processor is disabled, these aren't very useful.  The macro
+    tc_comment_chars points to this.  We use this, rather than the
+    usual comment_chars, so that the --bitwise-or option will work.  */
+-#if defined (TE_SVR4) || defined (TE_DELTA)
++#if (defined (TE_SVR4) || defined (TE_DELTA)) && !defined(AMIX)
+ const char *m68k_comment_chars = "|#";
+ #else
+ const char *m68k_comment_chars = "|";
+diff -Naur binutils-2.13.2.1/ld/configure.tgt binutils-2.13.2.1-patched/ld/configure.tgt
+--- binutils-2.13.2.1/ld/configure.tgt	2002-10-28 15:58:12.000000000 +0000
++++ binutils-2.13.2.1-patched/ld/configure.tgt	2026-07-22 16:38:20.000000000 +0100
+@@ -322,6 +322,7 @@
+ m68*-*-aout)		targ_emul=m68kaout ;;
+ m68*-*-coff)		targ_emul=m68kcoff ;;
+ m68*-*-elf)		targ_emul=m68kelf ;;
++m68*-*-sysv4)           targ_emul=m68kelf ;;
+ m68*-*-hpux*)		targ_emul=hp3hpux ;;
+ m68k-*-linux*aout*)	targ_emul=m68klinux
+ 			targ_extra_emuls=m68kelf
+diff -Naur binutils-2.13.2.1/opcodes/m68k-opc.c binutils-2.13.2.1-patched/opcodes/m68k-opc.c
+--- binutils-2.13.2.1/opcodes/m68k-opc.c	2001-11-12 16:36:06.000000000 +0000
++++ binutils-2.13.2.1-patched/opcodes/m68k-opc.c	2026-07-22 18:01:53.000000000 +0100
+@@ -305,6 +305,7 @@
+ {"dbvc",	one(0054310),	one(0177770), "DsBw", m68000up },
+ {"dbvs",	one(0054710),	one(0177770), "DsBw", m68000up },
+ 
++#if !defined(AMIX)
+ {"divsw",	one(0100700),	one(0170700), ";wDd", m68000up | mcf5307up | mcf5206e },
+ 
+ {"divsl", two(0046100,0006000),two(0177700,0107770),";lD3D1", m68020up|cpu32 },
+@@ -322,6 +323,41 @@
+ 
+ {"divull", two(0046100,0000000),two(0177700,0107770),";lD3D1",m68020up|cpu32 },
+ {"divull", two(0046100,0000000),two(0177700,0107770),";lDD",  m68020up|cpu32 },
++#else /* AMIX */
++
++  /* Signed Division  */
++{"divsw",   one(0100700),          one(0170700),         ";wDd",   m68000up },
++  /* 32/32 -> 32q     */
++{"divs.l",  two(0046100,0004000),  two(0177700,0107770), ";lDD",   m68020up|cpu32 },
++  /* 64/32 -> 32r:32q */
++{"divs.l",  two(0046100,0006000),  two(0177700,0107770), ";lD3D1", m68020up|cpu32 },
++  /* 32/32 -> 32r:32q */
++{"divsl.l", two(0046100,0004000),  two(0177700,0107770), ";lDD",   m68020up|cpu32 },
++  /* 32/32 -> 32r:32q */
++{"divsl.l", two(0046100,0004000),  two(0177700,0107770), ";lD3D1", m68020up|cpu32 },
++
++ /* Unsigned Division */
++{"divuw",   one(0100300),          one(0170700),         ";wDd",   m68000up },
++  /* 32/32 -> 32q      */
++{"divu.l",  two(0046100,0000000),  two(0177700,0107770), ";lDD",   m68020up|cpu32 },
++  /* 64/32 -> 32r:32q  */
++{"divu.l",  two(0046100,0002000),  two(0177700,0107770), ";lD3D1", m68020up|cpu32 },
++  /* 32/32 -> 32r:32q  */
++{"divul.l", two(0046100,0000000),  two(0177700,0107770), ";lDD",   m68020up|cpu32 },
++  /* 32/32 -> 32r:32q  */
++{"divul.l", two(0046100,0000000),  two(0177700,0107770), ";lD3D1", m68020up|cpu32 },
++
++  /* Historical GNU aliases */
++{"divsl",   two(0046100,0004000),  two(0177700,0107770), ";lDD",   m68020up|cpu32 },
++{"divsl",   two(0046100,0006000),  two(0177700,0107770), ";lD3D1", m68020up|cpu32 },
++{"divul",   two(0046100,0000000),  two(0177700,0107770), ";lDD",   m68020up|cpu32 },
++{"divul",   two(0046100,0002000),  two(0177700,0107770), ";lD3D1", m68020up|cpu32 },
++{"divsll",  two(0046100,0004000),  two(0177700,0107770), ";lDD",   m68020up|cpu32 },
++{"divsll",  two(0046100,0004000),  two(0177700,0107770), ";lD3D1", m68020up|cpu32 },
++{"divull",  two(0046100,0000000),  two(0177700,0107770), ";lDD",   m68020up|cpu32 },
++{"divull",  two(0046100,0000000),  two(0177700,0107770), ";lD3D1", m68020up|cpu32 },
++
++#endif
+ 
+ {"eorib",	one(0005000),	one(0177700), "#b$s", m68000up },
+ {"eorib",	one(0005074),	one(0177777), "#bCs", m68000up },
+@@ -1461,6 +1497,8 @@
+ {"msacml", two(0120240, 0005440), two(0170670, 0005460), "R3R1Mh-sRn", mcf5307up | mcf5206e },
+ {"msacml", two(0120250, 0005440), two(0170670, 0005460), "R3R1MhdsRn", mcf5307up | mcf5206e },
+ 
++#if !defined(AMIX)
++
+ {"mulsw",	one(0140700),		one(0170700), ";wDd", m68000up|mcf },
+ {"mulsl",	two(0046000,004000), two(0177700,0107770), ";lD1", m68020up|cpu32 },
+ {"mulsl",	two(0046000,004000), two(0177700,0107770), "qsD1", mcf },
+@@ -1471,6 +1509,32 @@
+ {"mulul",	two(0046000,000000), two(0177700,0107770), "qsD1", mcf },
+ {"mulul",	two(0046000,002000), two(0177700,0107770), ";lD3D1",m68020up|cpu32 },
+ 
++#else /* AMIX */
++
++  /* Signed Multiplies (68020+) */
++  /* Signed Multiply */
++{"mulsw",   one(0140700),          one(0170700),         ";wDd",   m68000up|mcf5200},
++  /* 32/32 -> 32 */
++{"mulsl",   two(0046000,0004000),  two(0177700,0107770), ";lD1",   m68020up|cpu32 },
++  /* 64/32 -> 64 */
++{"mulsl",   two(0046000,0006000),  two(0177700,0107770), ";lD3D1", m68020up|cpu32 },
++
++  /* Unsigned Multiplies (68020+) */
++  /* Unsigned Multiply */
++{"muluw",   one(0140300),          one(0170700),         ";wDd",   m68000up|mcf5200},
++  /* 32/32 -> 32 */
++{"mulul",   two(0046000,0000000),  two(0177700,0107770), ";lD1",   m68020up|cpu32 },
++  /* 64/32 -> 64 */
++{"mulul",   two(0046000,0002000),  two(0177700,0107770), ";lD3D1", m68020up|cpu32 },
++
++  /* Motorola standard mnemonics (aliases for the above) */
++{"muls.l",  two(0046000,0004000),  two(0177700,0107770), ";lD1",   m68020up|cpu32 },
++{"muls.l",  two(0046000,0006000),  two(0177700,0107770), ";lD3D1", m68020up|cpu32 },
++{"mulu.l",  two(0046000,0000000),  two(0177700,0107770), ";lD1",   m68020up|cpu32 },
++{"mulu.l",  two(0046000,0002000),  two(0177700,0107770), ";lD3D1", m68020up|cpu32 },
++
++#endif
++
+ {"nbcd",	one(0044000),	one(0177700), "$s", m68000up },
+ 
+ {"negb",	one(0042000),	one(0177700), "$s", m68000up },

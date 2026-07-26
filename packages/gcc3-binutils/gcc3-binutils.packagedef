@@ -1,0 +1,15 @@
+packageSource=http://ftp.gnu.org/gnu/binutils/binutils-2.13.2.1.tar.gz
+packageFile=binutils-2.13.2.1.tar.gz
+packageChecksum=0bcbe178291e3b3254f3835a2171a710
+packageExtraction=tarxfsystemhelper.sh
+packageDir=binutils-2.13.2.1
+packagePatch=gcc3-binutils.amixfixes.patch
+
+expectedToolList=
+dependenciesList=coreutils
+envModifs=setupenv.sh
+configureRecipe=configureit
+buildRecipe=buildit
+installRecipe=installit
+passesChecksIndicator=1
+compilers=gcc

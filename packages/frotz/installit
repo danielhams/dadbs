@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+
+BUILDDIR=$1
+INSTALLDIR=$2
+EXTRAARGS=$3
+echo $BUILDDIR
+echo $INSTALLDIR
+echo $EXTRAARGS
+. ./setupenv.sh
+cd $BUILDDIR || exit -1
+make CC="$CC" OPTS="$CFLAGS -DSVR4 -Drindex=strrchr" PREFIX="$INSTALLDIR" CONFIG_DIR="$INSTALLDIR/etc" LIB="-lcurses -lc -lgen" CURSES="" install || exit -1
+exit 0

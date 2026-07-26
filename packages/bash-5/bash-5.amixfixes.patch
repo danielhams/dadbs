@@ -1,0 +1,48 @@
+diff -Naur bash-5.0/builtins/exec.def bash-5.0-patched/builtins/exec.def
+--- bash-5.0/builtins/exec.def	2018-09-11 13:24:53.000000000 +0000
++++ bash-5.0-patched/builtins/exec.def	2026-06-26 18:36:46.000000000 +0000
+@@ -40,6 +40,7 @@
+ Exit Status:
+ Returns success unless COMMAND is not found or a redirection error occurs.
+ $END
++#include <stdio.h>
+ 
+ #include <config.h>
+ 
+diff -Naur bash-5.0/builtins/printf.def bash-5.0-patched/builtins/printf.def
+--- bash-5.0/builtins/printf.def	2018-09-28 20:35:31.000000000 +0000
++++ bash-5.0-patched/builtins/printf.def	2026-06-27 02:08:45.000000000 +0000
+@@ -73,6 +73,7 @@
+ #endif
+ 
+ #include <stdio.h>
++#include <stdlib.h>
+ #include <chartypes.h>
+ 
+ #ifdef HAVE_INTTYPES_H
+diff -Naur bash-5.0/locale.c bash-5.0-patched/locale.c
+--- bash-5.0/locale.c	2018-05-25 16:09:21.000000000 +0000
++++ bash-5.0-patched/locale.c	2026-07-17 16:32:19.667088000 +0000
+@@ -30,6 +30,10 @@
+ #  include <langinfo.h>
+ #endif
+ 
++#if HAVE_LOCALE_CHARSET
++#  include <localcharset.h>
++#endif
++
+ #include "bashintl.h"
+ #include "bashansi.h"
+ #include <stdio.h>
+@@ -576,6 +580,11 @@
+   cp = nl_langinfo (CODESET);
+   return (STREQ (cp, "UTF-8") || STREQ (cp, "utf8"));
+ #elif HAVE_LOCALE_CHARSET
++
++#ifndef _LOCALCHARSET_H
++#error "Missing prototype for locale_charset"
++#endif
++
+   cp = locale_charset ();
+   return (STREQ (cp, "UTF-8") || STREQ (cp, "utf8"));
+ #else

@@ -1,0 +1,15 @@
+packageSource=frotz-2.44.tar.gz
+packageFile=frotz-2.44.tar.gz
+packageChecksum=19d0cdb44d4462aaab97d197b28c7b08
+packageExtraction=guntarsystemhelper.sh
+packageDir=frotz-2.44
+packagePatch=frotz.amixfixes.patch
+
+expectedToolList=
+dependenciesList=coreutils
+envModifs=setupenv.sh
+configureRecipe=configureit
+buildRecipe=buildit
+installRecipe=installit
+passesChecksIndicator=1
+compilers=gcc

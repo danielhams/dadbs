@@ -1,4 +1,4 @@
-#!/usr/gnutc/bin/sh
+#!/usr/bin/env sh
 
 BUILDDIR=$1
 INSTALLDIR=$2
@@ -17,8 +17,8 @@ mkdir build-libiconv
 cd build-libiconv
 
 # Don't use mksh - broken configure/libtool with it
-export SHELL=/usr/gnutc/bin/sh
-export CONFIG_SHELL=$SHELL
+export SHELL="$RESOLVED_SHELL_SH"
+export CONFIG_SHELL="$RESOLVED_SHELL_SH"
 
 CONFIG_SHELL=$CONFIG_SHELL SHELL=$SHELL $SHELL $BUILDDIR/configure --prefix=$INSTALLDIR --disable-static --enable-dynamic --disable-nls || exit -1
 exit 0

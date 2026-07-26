@@ -1,0 +1,15 @@
+packageSource=emacs-19.34b.tar.gz
+packageFile=emacs-19.34b.tar.gz
+packageChecksum=9bd3c694a9019c2a2ebd703a9a0394e0
+packageExtraction=guntarsystemhelper.sh
+packageDir=emacs-19.34
+packagePatch=emacs.amixfixes.patch
+
+expectedToolList=
+dependenciesList=coreutils
+envModifs=setupenv.sh
+configureRecipe=configureit
+buildRecipe=buildit
+installRecipe=installit
+passesChecksIndicator=1
+compilers=gcc

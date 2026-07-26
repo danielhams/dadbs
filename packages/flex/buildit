@@ -1,0 +1,15 @@
+#!/usr/bin/env sh
+
+BUILDDIR=$1
+INSTALLDIR=$2
+EXTRAARGS=$3
+echo $BUILDDIR
+echo $INSTALLDIR
+echo $EXTRAARGS
+. ./setupenv.sh
+cd $BUILDDIR || exit -1
+# QUIRK - flex requireds a "yacc" to be available during build - so this one
+# occassion we append "/usr/ccs/bin" to the PATH to find the system one.
+export PATH=$PATH:/usr/ccs/bin
+make || exit -1
+exit 0

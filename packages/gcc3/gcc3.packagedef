@@ -1,0 +1,14 @@
+packageSource=gcc-3.2.1.tar.gz
+packageFile=gcc-3.2.1.tar.gz
+packageChecksum=82c26f362a6df7d2ba5b967606bd7d9a
+packageExtraction=tarxfsystemhelper.sh
+packageDir=gcc-3.2.1
+packagePatch=gcc3.amixfixes.patch
+expectedToolList=
+dependenciesList=gcc3-binutils,bison
+envModifs=setupenv.sh
+configureRecipe=configureit
+buildRecipe=buildit
+installRecipe=installit
+passesChecksIndicator=1
+compilers=gcc

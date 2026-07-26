@@ -7,8 +7,6 @@ use DadbsPackageHasher;
 
 use constant PACKAGESTATE => qw(UNCHECKED UNFETCHED FETCHED SIGCHECKED EXTRACTED PATCHED CONFIGURED BUILT INSTALLED OUTOFDATE);
 
-my($useHashes)=1;
-
 sub new
 {
     my $self = bless {}, shift;
@@ -37,14 +35,8 @@ sub new
     my $packageDefPath = "$packageDefsDir/$packageId";
     my $packageDefFile = "$packageDefPath/$packageId.packagedef";
 
-    my $packageDefDate = lastModTimestampOfPackage(
-	$packageDefPath, $packageDefFile );
-
     my $installedFile = "$installDir/dadbsversions/$packageId.installed";
     $self->{installedFileName} = $installedFile;
-
-    my $installedDate = lastModTimestampOrZero( $installedFile );
-    $self->{installedDate} = $installedDate;
 
     my $packageDefHash = DadbsPackageHasher::calculatePackageDefHash( $self->{v}, $packageDefPath );
     $self->{packageDefHash} = $packageDefHash;
@@ -69,113 +61,29 @@ sub new
 
     $self->{envPacDepHash} = $envPacDepHash;
 
-    my $mostRecentDependencyDate = calculateMostRecentDependencyDate(
-	$self,
-	$dadbsPackage,
-	$installedDate,
-	$foundPackageStatesRef );
-
-    (!$useHashes) && $self->{v} && dadbsprint "Package def date is $packageDefDate\n";
     $self->{v} && dadbsprint "Package def hash is $packageDefHash\n";
     $self->{v} && dadbsprint "Package epdh     is $envPacDepHash\n";
-    (!$useHashes) && $self->{v} && dadbsprint "Package installed date is $installedDate\n";
-    (!$useHashes) && $self->{v} && dadbsprint "Package most recent dep date is $mostRecentDependencyDate\n";
 
-    if( $useHashes ) {
-	if (! -e $installedFile) {
-	    $self->{v} && dadbsprint "Package $packageId not yet installed.\n";
-	    $self->{stateString} = UNFETCHED;
-	}
-	else {
-	    my $installedEnvPacDepHash = readHashFromInstalledFile($installedFile);
-#	    print "Read installed envpacdephash of $installedEnvPacDepHash\n";
-	    if( $installedEnvPacDepHash eq $envPacDepHash ) {
-		$self->{v} && dadbsprint "Package $packageId is up to date.\n";
-		$self->{stateString} = INSTALLED;
-	    }
-	    else {
-		$self->{v} && dadbsprint "Package $packageId out of date.\n";
-		$self->{stateString} = OUTOFDATE;
-	    }
-	}
+    if (! -e $installedFile) {
+	$self->{v} && dadbsprint "Package $packageId not yet installed.\n";
+	$self->{stateString} = UNFETCHED;
     }
     else {
-	if( $installedDate == 0 )
-	{
-	    $self->{v} && dadbsprint "Package $packageId not yet installed.\n";
-	    $self->{stateString} = UNFETCHED;
-	}
-	elsif( $installedDate lt $packageDefDate ||
-	       $installedDate lt $mostRecentDependencyDate )
-	{
-	    $self->{v} && dadbsprint "Package $packageId out of date.\n";
-	    $self->{stateString} = OUTOFDATE;
-	}
-	else
-	{
+	my $installedEnvPacDepHash = readHashFromInstalledFile($installedFile);
+#	    print "Read installed envpacdephash of $installedEnvPacDepHash\n";
+	if( $installedEnvPacDepHash eq $envPacDepHash ) {
 	    $self->{v} && dadbsprint "Package $packageId is up to date.\n";
 	    $self->{stateString} = INSTALLED;
 	}
-    }
-
-#    print "State is $self->{stateString}\n";
-#    exit;
-
-    return $self;
-}
-
-sub lastModTimestamp
-{
-    ( my $fn ) = (@_);
-
-    if( ! -e $fn )
-    {
-	dadbsprint "Expected file $fn missing.\n";
-	exit 1;
-    }
-
-    return (stat($fn))[9];
-}
-
-sub lastModTimestampOrZero
-{
-    ( my $fn ) = (@_);
-
-    if( ! -e $fn )
-    {
-	return 0;
-    }
-
-    return lastModTimestamp( $fn );
-}
-
-sub lastModTimestampOfPackage
-{
-    (my $pkgDefPath, $pkgDefFile ) = (@_);
-    my $newestLastModTimestamp = lastModTimestamp($pkgDefFile);
-    $self->{v} && dadbsprint "For $pkgDefFile lmt = $newestLastModTimestamp\n";
-
-    # Walk all files under the package def path
-    # Checking if any are newer
-    # Glob is _slightly_ quicker, and saves a fork/exec, too
-#    my @PKGFILES = `ls $pkgDefPath`;
-    my @PKGFILES = glob "$pkgDefPath/*";
-    chomp(@PKGFILES);
-
-    foreach $fullPathPkgHelperFile (@PKGFILES)
-    {
-	my $pkgHelperFile = basename($fullPathPkgHelperFile);
-	my $pkgHelperLmt = lastModTimestamp($pkgDefPath."/".$pkgHelperFile);
-	$self->{v} && dadbsprint "For helper file $pkgHelperFile lmt = $pkgHelperLmt\n";
-	if( $pkgHelperLmt gt $newestLastModTimestamp )
-	{
-	    $newestLastModTimestamp = $pkgHelperLmt;
-	    $self->{v} && dadbsprint "Helper file $pkgHelperFile is NEWER ($pkgHelperLmt).\n";
+	else {
+	    $self->{v} && dadbsprint "Package $packageId out of date.\n";
+	    $self->{stateString} = OUTOFDATE;
 	}
     }
-    $self->{v} && dadbsprint "For $pkgDefFile returning $newestLastModTimestamp\n";
 
-    return $newestLastModTimestamp;
+#    $self->{v} && dadbsprint "DEBUG: State of $packageId on object $self is " .$self->{stateString} . "\n";
+
+    return $self;
 }
 
 sub debug
@@ -198,19 +106,8 @@ sub setState
 	open IFN, ">$installedFileName" || die $!;
 	printf IFN "$self->{envPacDepHash}\n";
 	close IFN;
-	$self->{installedDate} = lastModTimestamp($installedFileName);
     }
 
-}
-
-sub fakeNewInstalledDate
-{
-    my $self = shift;
-    $self->{stateString} = INSTALLED;
-    $self->{installedDate} = time();
-    (!$useHashes) && $self->{v} &&
-	dadbsprint "Fake set new installed date to " .
-	$self->{installedDate} . "\n";
 }
 
 sub getState
@@ -219,31 +116,6 @@ sub getState
     return $self->{stateString};
 }
 
-sub calculateMostRecentDependencyDate
-{
-    (my $self, $dadbsPackage, $installedDate, $foundPackageStatesRef ) = (@_);
-
-    (!$useHashes) && $self->{v} && dadbsprint "Looking for most recent dependency date for $dadbsPackage->{packageId}\n";
-
-    my @pkgDependencies = split(',',$dadbsPackage->{dependenciesList});
-
-    my $mostRecentDepDate = $installedDate;
-
-    for $dep (@pkgDependencies)
-    {
-	my $depPkgState = ${$foundPackageStatesRef}{$dep};
-	(!$useHashes) && $self->{v} && dadbsprint "For dep $dep have pkgstate ".
-	    $depPkgState->getState()."\n";
-	my $pkgDepDate = $depPkgState->{installedDate};
-	if( $pkgDepDate gt $installedDate )
-	{
-	    (!$useHashes) && $self->{v} && dadbsprint "Dep $dep INCREASE of lmd to $pkgDepDate\n";
-	    $installedDate = $pkgDepDate;
-	}
-    }
-
-    return $installedDate;
-}
 sub calculateDependencyHashes
 {
     (my $self, $dadbsPackage, $foundPackageStatesRef ) = (@_);
@@ -252,16 +124,15 @@ sub calculateDependencyHashes
 
     my @pkgDependencies = split(',',$dadbsPackage->{dependenciesList});
 
-    my $mostRecentDepDate = $installedDate;
-
     my @dependencyHashes = ();
 
     for $dep (@pkgDependencies)
     {
-	my $depPkgState = ${$foundPackageStatesRef}{$dep};
-	$self->{v} && dadbsprint "For dep $dep have pkgstate ".
-	    $depPkgState->getState()."\n";
-	my $pkgEnvPacDepHash = $depPkgState->{envPacDepHash};
+	my $depPkgObj = ${$foundPackageStatesRef}{$dep};
+#        $self->{v} && dadbsprint "DEBUG: reading state from $depPkgObj\n";
+	my $depPkgState = $depPkgObj->getState();
+	$self->{v} && dadbsprint "For dep $dep have pkgstate ".$depPkgState."\n";
+	my $pkgEnvPacDepHash = $depPkgObj->{envPacDepHash};
 	push @dependencyHashes, $pkgEnvPacDepHash;
 #	print "Have a dep hash: " . $pkgEnvPacDepHash . "\n";
 #	exit;
@@ -276,6 +147,30 @@ sub readHashFromInstalledFile {
     my $contents = do{local(@ARGV,$/)=$filename;<>};
     chomp($contents);
     return $contents;
+}
+
+sub reconcileHashOnDisk {
+    my $self = shift;
+
+    # Only reconcile if it was previously installed
+    if ( -f $self->{installedFileName} ) {
+        my $newHash = $self->{envPacDepHash};
+        if (open HFOD, ">$self->{installedFileName}") {
+            print HFOD "$newHash\n";
+            close HFOD;
+            $self->{v} && dadbsprint "  [RECONCILE] Wrote new hash ($newHash) to $self->{installedFileName}\n";
+            # Crucially: Update the state string so downstream dependencies 
+            # don't falsely think this package is still OUTOFDATE.
+            $self->{stateString} = INSTALLED;
+            return 1; # Success
+        } else {
+            dadbsprint "  [ERROR] Could not open $self->{installedFileName} for writing: $!\n";
+            return 0;
+        }
+    } else {
+        $self->{v} && dadbsprint "  [RECONCILE] Skipped $self->{packageId} - no existing installation found.\n";
+        return 0;
+    }
 }
 
 1;

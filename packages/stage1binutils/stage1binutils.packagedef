@@ -1,0 +1,15 @@
+packageSource=http://ftp.gnu.org/gnu/binutils/binutils-2.8.1.tar.gz
+packageFile=binutils-2.8.1.tar.gz
+packageChecksum=787229d600b8bb58fe7e75ea30445e44
+packageExtraction=tarxfsystemhelper.sh
+packageDir=binutils-2.8.1
+packagePatch=binutils.amixfixes.patch
+
+expectedToolList=
+dependenciesList=stage1make,stage1tar,stage1gzip,stage1gawk,stage1grep,stage1sed,stage1m4,stage1bash
+envModifs=setupenv.sh
+configureRecipe=configureit
+buildRecipe=buildit
+installRecipe=installit
+passesChecksIndicator=1
+compilers=gcc

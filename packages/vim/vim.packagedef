@@ -1,0 +1,15 @@
+packageSource=vim-6.4.tar.bz2
+packageFile=vim-6.4.tar.bz2
+packageChecksum=774c14d93ce58674b3b2c880edd12d77
+packageExtraction=tarxfsystemhelper.sh
+packageDir=vim64/src
+#packagePatch=vim.amixfixes.patch
+
+expectedToolList=
+dependenciesList=coreutils
+envModifs=setupenv.sh
+configureRecipe=configureit
+buildRecipe=buildit
+installRecipe=installit
+passesChecksIndicator=1
+compilers=gcc

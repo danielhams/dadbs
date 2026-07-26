@@ -1,0 +1,14 @@
+packageSource=gcc-2.95.3.tar.gz
+packageFile=gcc-2.95.3.tar.gz
+packageChecksum=f3ad4f32c2296fad758ed051b5ac8e28
+packageExtraction=tarxfsystemhelper.sh
+packageDir=gcc-2.95.3
+packagePatch=gcc.amixfixes.patch
+expectedToolList=
+dependenciesList=stage1make,stage1gawk,stage1grep,stage1sed,stage1m4,stage1bash,stage1binutils,stage1perl
+envModifs=setupenv.sh
+configureRecipe=configureit
+buildRecipe=buildit
+installRecipe=installit
+passesChecksIndicator=1
+compilers=gcc

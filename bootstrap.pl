@@ -1,12 +1,17 @@
-#!/usr/dadbsbootstrap/bin/perl
+#!/usr/bin/env perl
 
-use File::Basename qw/basename/;
+# Ensure we're warned about missing/unused variables
+use strict;
+
+use File::Basename qw/dirname basename/;
+use File::Path qw/rmtree/;
 use FindBin;
 #use lib ".";
 use lib "$FindBin::Bin/lib";
 
+use Cwd qw(abs_path);
+
 # Packages specific to the tooling
-use DadbsStageChecker;
 use DadbsDependencyEngine;
 use DadbsPackage;
 use DadbsPackageState;
@@ -19,16 +24,19 @@ use DadbsPackageShell;
 use DadbsUtils;
 use DadbsDependencyWriter;
 
+use constant true        => 1;
+use constant false       => 0;
+
 STDERR->autoflush(1);
 STDOUT->autoflush(1);
 
 my $argc = ($#ARGV + 1);
-my $version = "0.1.9";
+my $version = "0.2.0";
 
 (my $configfile = basename($0)) =~ s/^(.*?)(?:\..*)?$/$1.conf/;
 my $scriptLocation = $FindBin::Bin;
-#dadbsprint "Script location is $scriptLocation\n";
-#dadbsprint "Configfile is $configfile\n";
+dadbsprint "Script location is $scriptLocation\n";
+dadbsprint "Configfile is $configfile\n";
 
 my $usingfoundconf = 0;
 
@@ -51,84 +59,115 @@ my $verbose = 0;
 my $clean = 0;
 my $stoponuntested = 0;
 my $dryrun = 0;
+my $updatehashes = 0;
+my $preservebuilddirs = 0;
 my $buildpackage = undef;
 my $buildshellpackage = undef;
 
-sub supressenv
-{
-    my $scriptdir = shift;
-    open CFG, "<".$scriptdir."suppressenv.vars" || die $!;
-    my @envvars = <CFG>;
-    close CFG;
-
-    my %values;
-    foreach (@envvars) {
-        chomp;
-        s|#.+||;
-        s|@(.+?)@|$1|g;
-# this eats values with spaces in there....
-#        s|\s||;
-	next if $_ eq "";
-	delete $ENV{$_};
-	if($verbose)
-	{
-		dadbsprint " Supressing environment $_\n";
+sub debug_env {
+    my($env_stage) = shift;
+    # Debug env 1
+    if( $verbose ) {
+	dadbsprint "$env_stage - DEBUG OF ENV AFTER SUPPRESS/DEFAULT/OVERRIDE:\n";
+	foreach my $var (keys %ENV) {
+	    dadbsprint "  $var = $ENV{$var}\n";
 	}
     }
 }
 
-sub getdefaultenv
-{
-    my $scriptdir = shift;
-    open CFG, "<".$scriptdir."defaultenv.vars" || die $!;
-    my @envvars = <CFG>;
-    close CFG;
-
-    my %values;
-    foreach (@envvars) {
-        chomp;
-        s|#.+||;
-        s|@(.+?)@|$1|g;
-# this eats values with spaces in there....
-#        s|\s||;
-	next if $_ eq "";
-	my $firstEqualPos = index($_,"=");
-	my $key = substr($_, 0, $firstEqualPos);
-	my $val = substr($_, $firstEqualPos+1);
-#	print "Found $key->$val\n";
-        $values{$key} = $val;
+sub load_env_file {
+    my ($file, $is_mandatory) = @_;
+    unless (-e $file) {
+        die "DADBS Error: Mandatory environment file '$file' missing.\n" if $is_mandatory;
+        return (); # Return empty list for optional files
     }
-#    exit -1;
-    return %values;
+
+    open(ENVFH, "<$file") or die "DADBS Error: Cannot open '$file': $!\n";
+    my %file_vars;
+    while (<ENVFH>) {
+        chomp;
+        s/#.*//;            # Strip comments
+        s/^\s+//; s/\s+$//; # Trim whitespace
+        next if /^$/;       # Skip empty lines
+
+        if (index($_, '=') != -1) {
+            my ($key, $val) = split(/=/, $_, 2);
+            $file_vars{$key} = $val;
+        } else {
+            # For suppression, a key with no '=' is just the key name
+            $file_vars{$_} = 1;
+        }
+    }
+    close(ENVFH);
+    return %file_vars;
 }
 
-sub getoverrideenv
-{
-    my $scriptdir = shift;
-    my $overridefile = $scriptdir."overrideenv.vars";
-    if( -e $overridefile ) {
-	open CFG, "<".$scriptdir."overrideenv.vars" || die $!;
-	my @envvars = <CFG>;
-	close CFG;
+sub get_abs_file_path {
+    my $path = shift;
+    my $dir = dirname($path);
+    my $file = basename($path);
+    my $real_dir = abs_path($dir) || $dir;
+    return "$real_dir/$file";
+}
 
-	my %values;
-	foreach (@envvars) {
-	    chomp;
-	    s|#.+||;
-	    s|@(.+?)@|$1|g;
-            # this eats values with spaces in there....
-#	    s|\s||;
-	    next if $_ eq "";
-	    my $firstEqualPos = index($_,"=");
-	    my $key = substr($_, 0, $firstEqualPos);
-	    my $val = substr($_, $firstEqualPos+1);
-#	    print "Found $key->$val\n";
-	    $values{$key} = $val;
-	}
-#	exit -1;
-	return %values;
+sub evaluate_environment
+{
+    my ($is_stage1, $installDir, $static_env_href) = @_;
+
+    # 1. Reset env to static baseline
+    %ENV = %{$static_env_href};
+
+    # 2. Resolve phsyical roots
+    my $raw_boot_root = $ENV{'DADBS_BOOT_ROOT'} || "/usr/dadbs/current";
+    my $real_boot_root = abs_path($raw_boot_root) || $raw_boot_root;
+    my $real_inst_root = abs_path($installDir) || $installDir;
+
+    # 3. Work out PATH/LD_LIBRARY_PATH/PKG_CONFIG_PATH
+    my $base_path = $ENV{'PATH'} || "";
+    my $base_ld   = $ENV{'LD_LIBRARY_PATH'} || "";
+    my $base_pkg  = $ENV{'PKG_CONFIG_PATH'} || "";
+
+    if ($is_stage1) {
+        $ENV{'PATH'} = "$real_boot_root/bin" . ($base_path ? ":$base_path" : "");
+        $ENV{'LD_LIBRARY_PATH'} = "$real_boot_root/lib" . ($base_ld ? ":$base_ld" : "");
+        $ENV{'PKG_CONFIG_PATH'} = "$real_boot_root/lib/pkgconfig" . ($base_pkg ? ":$base_pkg" : "");
+    } else {
+        $ENV{'PATH'} = "$real_inst_root/bin" . ($base_path ? ":$base_path" : "");
+        $ENV{'LD_LIBRARY_PATH'} = "$real_inst_root/lib" . ($base_ld ? ":$base_ld" : "");
+        $ENV{'PKG_CONFIG_PATH'} = "$real_inst_root/lib/pkgconfig" . ($base_pkg ? ":$base_pkg" : "");
     }
-    return {};
+
+    # 4. Resolve the Post-Eval templates
+    foreach my $key (keys %ENV) {
+        if ($key =~ /^(.*)_POST_EVAL$/) {
+            my $target_var = $1;
+            my $val = $ENV{$key};
+
+            $val =~ s/\$DADBS_BOOT_ROOT/$real_boot_root/g;
+            $val =~ s/\$DADBS_INSTALL_ROOT/$real_inst_root/g;
+            # Add any other template substitutions here
+
+            if ($is_stage1 && $target_var =~ /^(.+)_BOOT$/) {
+                # e.g., SHELL_BOOT_POST_EVAL becomes SHELL
+                $ENV{$1} = get_abs_file_path($val) || $val;
+            } 
+            elsif (!$is_stage1 && $target_var !~ /_BOOT$/) {
+                # e.g., SHELL_POST_EVAL becomes SHELL
+                $ENV{$target_var} = get_abs_file_path($val) || $val;
+            }
+
+	    # Clean up raw template var so it doesn't leak
+	    delete $ENV{$key};
+        }
+    }
+
+    # 5. Boot tool variables eval
+    if (my $tools = $ENV{'DADBS_BOOT_TOOLS'}) {
+        foreach my $tool (split /,/, $tools) {
+            my $bin_path = "$real_boot_root/bin/$tool";
+            $ENV{"DADBS_BOOT_" . uc($tool)} = get_abs_file_path($bin_path) || $bin_path;
+        }
+    }
 }
 
 sub usage
@@ -145,6 +184,8 @@ Maintenance Options:
 \t                   \t--clean                (builds + installs)
 \t                   \t--stoponuntested
 \t                   \t--dryrun
+\t                   \t--dryrun-updatehashes
+\t                   \t--preserve-builddirs
 \t                   \t--buildshell PACKAGENAME
 
 On first run you must provide the package, build and installation directories
@@ -232,6 +273,8 @@ GetOptions(\%options,
            "clean" => \$clean,
            "stoponuntested" => \$stoponuntested,
            "dryrun" => \$dryrun,
+           "dryrun-updatehashes" => \$updatehashes,
+	   "preserve-builddirs" => \$preservebuilddirs,
 	   "build=s" => \$buildpackage,
            "buildshell=s" => \$buildshellpackage )
     or usage(true);
@@ -263,7 +306,6 @@ EOINCOMPATIBLEDADBSCURRENT
 ;
     exit -1;
 }
-
 
 sub prompt
 {
@@ -321,14 +363,24 @@ print"\n";
 if($verbose)
 {
     dadbsprint "Used config: \n";
-    foreach $key (keys %options)
+    foreach my $key (keys %options)
     {
 	dadbsprint " $key \t=> $options{$key}\n";
     }
 }
 
+# If we are in "updatehashes" mode - we are "dryrunning" too
+if( $updatehashes ) {
+    dadbsprint "WARNING: This will update on-disk hash correlation.\n";
+    if( !prompt_yn("Are you sure") ) {
+	exit 0;
+    }	
+    $dryrun = 1;
+}
+
 my $onlyDryrunArguments = (($argc == 1) && ($dryrun == 1)) ? 1 : 0;
-my $nonDestructiveParameters = ($onlyDryrunArguments || ($buildshellpackage ne "")) ? 1 : 0;
+my $isTransient = ($dryrun || $updatehashes || $preservebuilddirs) ? 1 : 0;
+my $nonDestructiveParameters = ($isTransient || ($buildshellpackage ne "")) ? 1 : 0;
 
 my $parametersUpdated = ($usingfoundconf == 0 || $argc >= 1) && ($nonDestructiveParameters == 0)
     ? 1 : 0;
@@ -381,81 +433,53 @@ if( $parametersUpdated )
 
 # Default environment vars
 print"\n";
-supressenv($DIR);
-my(%envvars) = getdefaultenv($DIR);
-foreach $var (keys %envvars)
-{
-    my $val = $envvars{$var};
-    $verbose && dadbsprint " setting $var=$val\n";
-    $ENV{$var} = $val;
-}
 # And an env var to allow GCC versions to reflect the dadbs version
 $ENV{"DADBS_VERSION"} = $version;
 
 # A hash of the default env, suppressed env and params for the build
 my $dadbsenvhash=DadbsPackageHasher::calculateEnvHash(
-    $scriptdir."defaultenv.vars",
-    $scriptdir."suppressenv.vars",
+    $scriptLocation."/defaultenv.vars",
+    $scriptLocation."/suppressenv.vars",
     $dadbscompiler );
 
-my(%envvars) = getoverrideenv($DIR);
-foreach $var (keys %envvars)
-{
-    my $val = $envvars{$var};
-    $verbose && dadbsprint " override of $var=$val\n";
-    $ENV{$var} = $val;
+# A. Clear the deck (Mandatory)
+my %to_suppress = load_env_file($scriptLocation . "/suppressenv.vars", 1);
+foreach my $var (keys %to_suppress) {
+    delete $ENV{$var};
 }
 
-# And set up the necessary env vars computed from
-# the elfwidth,isa and compiler
-my $dadbsarchcflags="";
-my $dadbsarchldflags="";
-my $dadbslibdir="lib";
+# B. Load Defaults (Mandatory)
+my %defaults = load_env_file($scriptLocation . "/defaultenv.vars", 1);
+foreach my $var (keys %defaults) {
+    $ENV{$var} = $defaults{$var};
+}
 
-$ENV{"DADBS_CC"}=$ENV{"DADBS_GCC_CC"};
-$ENV{"DADBS_CXX"}=$ENV{"DADBS_GCC_CXX"};
+# C. Apply Overrides (Optional)
+my %overrides = load_env_file($scriptLocation . "/overrideenv.vars", 0);
+foreach my $var (keys %overrides) {
+    $ENV{$var} = $overrides{$var};
+}
 
+# D. Final static tweaks (System-wide constants)
+$ENV{"DADBS_VERSION"} = $version;
+$ENV{"DADBS_CC"}      = $ENV{"DADBS_GCC_CC"}; # Bridging old/new names
+$ENV{"DADBS_CXX"}     = $ENV{"DADBS_GCC_CXX"};
 
-$ENV{"DADBS_ARCH_CFLAGS"} = $dadbsarchcflags;
-$ENV{"DADBS_ARCH_CXXFLAGS"} = $dadbsarchcflags;
-$ENV{"DADBS_ARCH_LDFLAGS"} = $dadbsarchldflags;
-$ENV{"DADBS_LIBDIR"} = $dadbslibdir;
+# Capture
+my(%static_env) = %ENV;
+
+#debug_env("initial-load");
 
 if( $verbose ) {
     dadbsprint "CC            = '".$ENV{"DADBS_CC"}."'\n";
     dadbsprint "CXX           = '".$ENV{"DADBS_CXX"}."'\n";
-    dadbsprint "arch CFLAGS   = '$dadbsarchcflags'\n";
-    dadbsprint "arch CXXFLAGS = '$dadbsarchcflags'\n";
-    dadbsprint "arch LDFLAGS  = '$dadbsarchldflags'\n";
-    dadbsprint "libdir        = '$dadbslibdir'\n";
     dadbsprint "env hash      = '$dadbsenvhash'\n";
 }
 
-# Check if we need to modify paths for stage1 builds
-# are already complete
-my $stageChecker = DadbsStageChecker->new( $scriptLocation,
-					   $packageDir,
-					   $buildDir,
-					   $installDir );
-
-# Only do this once per run of the script to keep things sane
-$verbose && dadbsprint "Modifying current path for this stage..\n";
-
-# Special case - getting the /usr/dadbs/current/libXX/pkgconfig into
-# the PKG_CONFIG_PATH
-$ENV{"PKG_CONFIG_PATH"} = "/usr/dadbs/current/$dadbslibdir/pkgconfig";
-$stageChecker->modifyPathForCurrentStage();
-
-#my $origpath = $ENV{"PATH"};
-#$ENV{"PATH"} = "$installDir/bin:$origpath";
-my $origPkgCpath = $ENV{"PKG_CONFIG_PATH"};
-$ENV{"PKG_CONFIG_PATH"} = "$installDir/$dadbslibdir/pkgconfig:$origPkgCpath";
-$ENV{"DADBS_INSTALL_DIR"} = $installDir;
-
-dadbsprint "Override the above by created a new file - overrideenv.vars\n";
+dadbsprint "Override the above by creating/populating overrideenv.vars\n";
 print"\n";
 
-my $packageDefsDir = $stageChecker->getStageAdjustedPackageDefDir();
+my $packageDefsDir = "packages";
 
 my $pkgDependencyEngine = DadbsDependencyEngine->new($verbose,
 						     $scriptLocation,
@@ -467,13 +491,6 @@ my $p2pRef = $pkgDependencyEngine->getPackageMap();
 
 my %pkgidToPackageMap = %{$p2pRef};
 
-my $sapd = $stageChecker->getStageAdjustedPackageDir();
-my $sabd = $stageChecker->getStageAdjustedBuildDir();
-my $said = $stageChecker->getStageAdjustedInstallDir();
-
-#dadbsprint "packageDefsDir=$packageDefsDir\n";
-#dadbsprint "sapd=$sapd\n";
-
 # Fast quit for buildshell
 if( $buildshellpackage )
 {
@@ -484,12 +501,19 @@ if( $buildshellpackage )
 	exit -1;
     }
 #    dadbsprint "Would launch build shell of $buildshellpackage here.\n";
+
+    # Ensure we get the "right" shell env, too
+    my $is_stage1 = begins_with($buildshellpackage, "stage1");
+    debug_env("before-eval");
+    evaluate_environment($is_stage1, $installDir, \%static_env);
+    debug_env("after-eval");
+
     my $curpkgshell = DadbsPackageShell->new( $scriptLocation,
 					      $packageDefsDir,
 					      $buildshellpackage,
 					      $packageDir,
-					      $sabd,
-					      $said,
+					      $buildDir,
+					      $installDir,
 					      $bsPackage );
 
     if( $verbose )
@@ -513,21 +537,30 @@ if( !$dryrun )
 
 my %foundPackageStates = ();
 
+if(!$installDir) {
+    die "Failed to have a valid installDir - $installDir\n";
+}
+
 # Full tree build
 dadbsprint "Checking for outdated/missing packages...\n";
-foreach $pkg (@{$foundPackagesRef})
+foreach my $pkg (@{$foundPackagesRef})
 {
+    chdir $scriptLocation || die "Cannot return to root: $!";
+
     my $curpkg = ${$pkg};
     my $pkgid = $curpkg->{packageId};
     $verbose && dadbsprint "Checking status of package '$pkgid'...\n";
+
+    my $is_stage1 = begins_with($pkgid, "stage1");
+    evaluate_environment($is_stage1, $installDir, \%static_env);
 
     checkPackage( $dadbsenvhash,
 		  $pkg,
 		  $scriptLocation,
 		  $packageDefsDir,
-		  $sapd,
-		  $sabd,
-		  $said,
+		  $packageDir,
+		  $buildDir,
+		  $installDir,
 		  \$pkgDependencyEngine,
 		  \%foundPackageStates );
 }
@@ -576,7 +609,8 @@ sub checkPackage
 
 #    dadbsprint "$curpkg->{passesChecksIndicator} $stoponuntested\n";
     ${$foundPackageStatesRef}{$packageId} = $curpkgstate;
-    $verbose && dadbsprint "Set the package state for $packageId\n";
+    my $discoveredState = ${$foundPackageStatesRef}{$packageId}->getState();
+    $verbose && dadbsprint "$packageId discovered package state is $discoveredState\n";
 
     my $pkgPci = $curpkg->{passesChecksIndicator};
     $verbose && dadbsprint "Package pci=$pkgPci and sou=$stoponuntested\n";
@@ -587,9 +621,9 @@ sub checkPackage
 	return;
     }
 
-    if( $curpkgstate->getState() ne INSTALLED )
+    if( $curpkgstate->getState() ne "INSTALLED" )
     {
-	dadbsprint "Checking status of package $packageId...\n";
+	dadbsprint "Checking extraction status of uninstalled package $packageId...\n";
 	# Wait for a return
 	#<STDIN>;
 
@@ -599,7 +633,6 @@ sub checkPackage
 						   $buildDir,
 						   $curpkg,
 						   $curpkgstate);
-
 
 	if( $verbose )
 	{
@@ -625,7 +658,7 @@ sub checkPackage
 	if( !$dryrun )
 	{
 	    if( defined($curpkg->{packagePatch}) &&
-		$curpkgextractor->getState() ne PATCHED)
+		$curpkgextractor->getState() ne "PATCHED")
 	    {
 		$curpkgpatcher = DadbsPatcher->new( $scriptLocation,
 						    $packageDefsDir,
@@ -640,7 +673,7 @@ sub checkPackage
 		    dadbsprint "Failed to patch $curpkg->{packageId}\n";
 		    exit -1;
 		}
-		$curpkgextractor->setState(PATCHED);
+		$curpkgextractor->setState("PATCHED");
 	    }
 	}
 
@@ -653,7 +686,6 @@ sub checkPackage
 							 $curpkg,
 							 $curpkgextractor,
 							 $curpkgpatcher );
-
 
 	if( !$dryrun )
 	{
@@ -683,7 +715,7 @@ sub checkPackage
 		exit -1;
 	    }
 	}
-	$verbose && dadbsprint "Package $packageId complete.\n";
+	$verbose && dadbsprint "Check of package $packageId complete.\n";
 
 	if( $stoponuntested && !($curpkg->{passesChecksIndicator}) )
 	{
@@ -706,19 +738,37 @@ sub checkPackage
 						   $curpkgpatcher,
 						   $curpkgconfigurator );
 
-	if( !$dryrun )
-	{
-	    if( !$curpkginstaller->installit() )
-	    {
+	if( !$dryrun ) {
+	    if( !$curpkginstaller->installit() ) {
 		dadbsprint "Failed during install step.\n";
 		exit -1;
 	    }
-	    $curpkgstate->setState(INSTALLED);
+	    $curpkgstate->setState("INSTALLED");
+            my $srcdir = $buildDir."/".$packageId."/".$curpkg->{packageDir};
+            if( !$preservebuilddirs ) {
+                if( $packageId ne "" && $curpkg->{packageDir} ne "" && -d $srcdir) {
+		    dadbsprint "  [CLEAN] Removing temporary source directory: $srcdir ...\n";
+		    rmtree($srcdir) || die "Unable to remove source tree for $packageId($srcdir): $!\n";
+		}
+                else {
+                    dadbsprint "  [ERROR] - packageId=".$packageId." packageDir=".$curpkg->{packageDir}." and srcdir=".$srcdir."\n";
+                    exit -1;
+                }
+            }
+            else {
+                dadbsprint "  [PRESERVE] Leaving source for inspection at $srcdir\n";
+            }
 	}
-	else
-	{
-	    dadbsprint "  Package needs building...\n";
-	    $curpkgstate->fakeNewInstalledDate();
+        else {
+	    # In a dryrun
+	    if( $updatehashes ) {
+                if( $curpkgstate->reconcileHashOnDisk() ) {
+		    dadbsprint "  Hash reconciled on disk for $packageId.\n";
+		}
+            }
 	}
     }
+    # Wait for a return so I can debug what is going on with
+    # weird package states.
+    #<STDIN>;
 }

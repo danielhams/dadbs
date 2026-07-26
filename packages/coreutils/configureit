@@ -1,0 +1,41 @@
+#!/usr/bin/env sh
+
+BUILDDIR=$1
+INSTALLDIR=$2
+EXTRAARGS=$3
+echo $BUILDDIR
+echo $INSTALLDIR
+echo $EXTRAARGS
+. ./setupenv.sh
+cd $BUILDDIR || exit -1
+
+# Early exit for patch generation
+#exit 1
+
+export SHELL=$INSTALLDIR/bin/bash-3
+export CONFIG_SHELL=$SHELL
+
+# Ensure we're not going to "rebuild the world" with autoconf issues
+# 1. Assert that the source of the configuration is "old"
+touch configure.ac
+touch aclocal.m4
+
+# 2. Assert that the generated configuration is "newer"
+touch configure
+#touch config.h.in
+
+# 3. Assert that the generated Makefile templates are newer still
+find . -name "Makefile.in" -exec touch {} \;
+
+# 4. Finally, assert that the current configuration is the newest
+#touch config.status
+#find . -name "Makefile" -exec touch {} \;
+#touch lib/config.h
+
+# 5. Overwrite problematic source files we're not going to use.
+cp lib/empty.c lib/sha256.c || exit -1
+cp lib/empty.c lib/sha512.c || exit -1
+
+$SHELL ./configure --prefix=$INSTALLDIR --disable-acl --disable-nls --enable-no-install-program="$NO_INSTALL_PROGS" || exit -1
+
+exit 0

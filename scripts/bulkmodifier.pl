@@ -1,4 +1,4 @@
-#!/usr/dadbs/current/bin/perl
+#!/usr/bin/env perl
 use File::Basename qw/basename/;
 use FindBin;
 use lib ".";

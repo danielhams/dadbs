@@ -1,0 +1,14 @@
+#!/usr/bin/env sh
+
+BUILDDIR=$1
+INSTALLDIR=$2
+EXTRAARGS=$3
+echo $BUILDDIR
+echo $INSTALLDIR
+echo $EXTRAARGS
+. ./setupenv.sh
+cd $BUILDDIR || exit -1
+
+make CC="$CC" CFLAGS="$CFLAGS" MAKEINFO=true SHELL="$SHELL" CONFIG_SHELL="$CONFIG_SHELL" install || exit -1
+
+exit 0

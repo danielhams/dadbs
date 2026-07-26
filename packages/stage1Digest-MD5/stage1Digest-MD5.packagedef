@@ -1,0 +1,14 @@
+packageSource=Digest-MD5-2.30.tar.gz
+packageFile=Digest-MD5-2.30.tar.gz
+packageChecksum=b53c5c1a199932122f52f14b01252399
+packageExtraction=tarxfsystemhelper.sh
+packageDir=Digest-MD5-2.30
+#packagePatch= no patch
+expectedToolList=
+dependenciesList=stage1perl
+envModifs=setupenv.sh
+configureRecipe=configureit
+buildRecipe=buildit
+installRecipe=installit
+passesChecksIndicator=1
+compilers=gcc

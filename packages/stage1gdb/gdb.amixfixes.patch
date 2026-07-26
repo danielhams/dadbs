@@ -1,0 +1,129 @@
+diff -Naur gdb-5.3/gdb/proc-api.c gdb-5.3-patched/gdb/proc-api.c
+--- gdb-5.3/gdb/proc-api.c	2002-08-29 15:08:23.000000000 +0000
++++ gdb-5.3-patched/gdb/proc-api.c	2026-07-11 12:23:39.520380000 +0000
+@@ -34,6 +34,9 @@
+ #endif
+ 
+ #include <stdio.h>
++#if defined(AMIX)
++#include <sys/param.h>
++#endif
+ #include <sys/types.h>
+ #include <sys/procfs.h>
+ #ifdef HAVE_SYS_PROC_H
+@@ -177,7 +180,9 @@
+   { PIOCOPENPD,    "PIOCOPENPD",   "get page data file descriptor" },
+ #endif
+   { PIOCPSINFO,    "PIOCPSINFO",   "get ps(1) information" },
++#if defined(PIOCRESET)
+   { PIOCRESET,     "PIOCRESET",    "reset process flags" },
++#endif
+   { PIOCRFORK,     "PIOCRFORK",    "reset inherit-on-fork flag" },
+   { PIOCRRLC,      "PIOCRRLC",     "reset run-on-last-close flag" },
+   { PIOCRUN,       "PIOCRUN",      "make process runnable" },
+@@ -185,7 +190,9 @@
+   { PIOCSAVECCNTRS, "PIOCSAVECCNTRS", "parent gets child cntrs" },
+ #endif
+   { PIOCSENTRY,    "PIOCSENTRY",   "set traced syscall entry set" },
++#if defined(PIOCSET)
+   { PIOCSET,       "PIOCSET",      "set process flags" },
++#endif
+   { PIOCSEXIT,     "PIOCSEXIT",    "set traced syscall exit  set" },
+   { PIOCSFAULT,    "PIOCSFAULT",   "set traced fault set" },
+   { PIOCSFORK,     "PIOCSFORK",    "set inherit-on-fork flag" },
+@@ -238,6 +245,7 @@
+ 	fprintf (procfs_file ? procfs_file : stdout, 
+ 		 "%s:%d -- ", file, line);
+       switch (opcode) {
++#if defined(PIOCSET)
+       case PIOCSET:
+ 	arg1 = ptr ? *(long *) ptr : 0;
+ 	fprintf (procfs_file ? procfs_file : stdout, 
+@@ -250,6 +258,8 @@
+ 		 "<unknown flag>",
+ 		 info_verbose ? ioctl_table[i].desc : "");
+ 	break;
++#endif
++#if defined(PIOCRESET)
+       case PIOCRESET:
+ 	arg1 = ptr ? *(long *) ptr : 0;
+ 	fprintf (procfs_file ? procfs_file : stdout, 
+@@ -262,6 +272,7 @@
+ 		 "<unknown flag>",
+ 		 info_verbose ? ioctl_table[i].desc : "");
+ 	break;
++#endif
+       case PIOCSTRACE:
+ 	fprintf (procfs_file ? procfs_file : stdout, 
+ 		 "ioctl (PIOCSTRACE) ");
+diff -Naur gdb-5.3/gdb/procfs.c gdb-5.3-patched/gdb/procfs.c
+--- gdb-5.3/gdb/procfs.c	2002-08-26 19:18:33.000000000 +0000
++++ gdb-5.3-patched/gdb/procfs.c	2026-07-11 12:11:27.937031000 +0000
+@@ -27,6 +27,10 @@
+ #include "gdbcmd.h"
+ #include "gdbthread.h"
+ 
++#if defined(AMIX)
++#include <string.h>
++#endif
++
+ #if defined (NEW_PROC_API)
+ #define _STRUCTURED_PROC 1	/* Should be done by configure script. */
+ #endif
+@@ -1266,6 +1270,9 @@
+ int
+ proc_nsysarg (procinfo *pi)
+ {
++#if defined (AMIX)
++  return 0;
++#else
+   if (!pi->status_valid)
+     if (!proc_get_status (pi))
+       return 0;
+@@ -1275,6 +1282,8 @@
+ #else
+   return pi->prstatus.pr_nsysarg;
+ #endif
++
++#endif
+ }
+ 
+ /*
+@@ -1286,6 +1295,9 @@
+ long *
+ proc_sysargs (procinfo *pi)
+ {
++#if defined(AMIX)
++  return NULL;
++#else
+   if (!pi->status_valid)
+     if (!proc_get_status (pi))
+       return NULL;
+@@ -1295,6 +1307,8 @@
+ #else
+   return (long *) &pi->prstatus.pr_sysarg;
+ #endif
++
++#endif
+ }
+ 
+ /*
+@@ -1306,6 +1320,9 @@
+ int
+ proc_syscall (procinfo *pi)
+ {
++#if defined(AMIX)
++  return 0;
++#else
+   if (!pi->status_valid)
+     if (!proc_get_status (pi))
+       return 0;
+@@ -1315,6 +1332,8 @@
+ #else
+   return pi->prstatus.pr_syscall;
+ #endif
++
++#endif
+ }
+ #endif /* PIOCSSPCACT */
+ 

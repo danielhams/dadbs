@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+# Do nothing
+echo "Smuggler package has no build..."
+
+exit 0

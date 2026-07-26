@@ -1,0 +1,14 @@
+packageSource=Getopt-ArgvFile-1.04.tgz
+packageFile=Getopt-ArgvFile-1.04.tgz
+packageChecksum=54f19cfabac0176f3230568523cdf97d
+packageExtraction=tarxfsystemhelper.sh
+packageDir=Getopt-ArgvFile-1.04
+#packagePatch=
+expectedToolList=
+dependenciesList=stage1perl
+envModifs=setupenv.sh
+configureRecipe=configureit
+buildRecipe=buildit
+installRecipe=installit
+passesChecksIndicator=1
+compilers=gcc

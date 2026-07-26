@@ -1,0 +1,14 @@
+packageSource=coreutils-6.12.tar.gz
+packageFile=coreutils-6.12.tar.gz
+packageChecksum=2ca9ac69823dbd567b905a9e9f53c4f6
+packageExtraction=tarxfsystemhelper.sh
+packageDir=coreutils-6.12
+packagePatch=coreutils.amixfixes.patch
+expectedToolList=
+dependenciesList=stage1gdb
+envModifs=setupenv.sh
+configureRecipe=configureit
+buildRecipe=buildit
+installRecipe=installit
+passesChecksIndicator=1
+compilers=gcc

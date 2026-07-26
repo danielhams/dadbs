@@ -1,4 +1,4 @@
-#!/usr/gnutc/bin/sh
+#!/usr/bin/env sh
 
 BUILDDIR=$1
 INSTALLDIR=$2
@@ -11,6 +11,6 @@ cd $BUILDDIR || exit -1
 
 # Early exist for patch generation
 #exit 1
-
-./configure --prefix=$INSTALLDIR  || exit -1
+export ACCEPT_INFERIOR_RM_PROGRAM=yes
+$SHELL ./configure --prefix=$INSTALLDIR  || exit -1
 exit 0

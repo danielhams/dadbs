@@ -1,0 +1,15 @@
+packageSource=http://ftp.gnu.org/gnu/gzip/gzip-1.9.tar.gz
+packageFile=gzip-1.9.tar.gz
+packageChecksum=929d6a6b832f75b28e3eeeafb30c1d9b
+packageExtraction=guntarsystemhelper.sh
+packageDir=gzip-1.9
+packagePatch=gzip.amixfixes.patch
+
+expectedToolList=
+dependenciesList=coreutils
+envModifs=setupenv.sh
+configureRecipe=configureit
+buildRecipe=buildit
+installRecipe=installit
+passesChecksIndicator=1
+compilers=gcc

@@ -1,4 +1,4 @@
-#!/usr/gnutc/bin/sh
+#!/usr/bin/env sh
 
 BUILDDIR=$1
 INSTALLDIR=$2
@@ -9,5 +9,5 @@ echo $EXTRAARGS
 . ./setupenv.sh
 cd $BUILDDIR || exit -1
 cd ../build-libiconv
-make -j $DIDBS_JOBS || exit -1
+make SHELL="$SHELL" CONFIG_SHELL="$CONFIG_SHELL" || exit -1
 exit 0

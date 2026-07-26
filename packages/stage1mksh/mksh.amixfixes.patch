@@ -1,0 +1,116 @@
+diff -Naur mksh/funcs.c mksh-patched/funcs.c
+--- mksh/funcs.c	2018-10-20 21:04:55.000000000 +0000
++++ mksh-patched/funcs.c	2026-06-26 12:27:49.000000000 +0000
+@@ -26,6 +26,12 @@
+ 
+ #include "sh.h"
+ 
++#if defined(AMIX)
++#include <sys/time.h>
++#include <sys/select.h>
++#include <sys/resource.h>
++#endif
++
+ #if HAVE_SELECT
+ #if HAVE_SYS_BSDTYPES_H
+ #include <sys/bsdtypes.h>
+diff -Naur mksh/histrap.c mksh-patched/histrap.c
+--- mksh/histrap.c	2018-04-28 17:17:21.000000000 +0000
++++ mksh-patched/histrap.c	2026-06-26 12:28:08.000000000 +0000
+@@ -22,6 +22,10 @@
+  * of said person's immediate fault when using the work as intended.
+  */
+ 
++#if defined(AMIX)
++#include <sys/mman.h>
++#endif
++
+ #include "sh.h"
+ #if HAVE_SYS_FILE_H
+ #include <sys/file.h>
+diff -Naur mksh/lalloc.c mksh-patched/lalloc.c
+--- mksh/lalloc.c	2016-02-26 21:54:02.000000000 +0000
++++ mksh-patched/lalloc.c	2026-06-26 12:21:34.000000000 +0000
+@@ -118,12 +118,12 @@
+  fail:
+ #endif
+ #ifdef DEBUG
+-			internal_warningf("rogue pointer %zX in ap %zX",
+-			    (size_t)ptr, (size_t)ap);
++			internal_warningf("rogue pointer %lX in ap %lX",
++			    (unsigned long)ptr, (unsigned long)ap);
+ 			/* try to get a coredump */
+ 			abort();
+ #else
+-			internal_errorf("rogue pointer %zX", (size_t)ptr);
++			internal_errorf("rogue pointer %lX", (unsigned long)ptr);
+ #endif
+ 		}
+ 	return (ap);
+diff -Naur mksh/main.c mksh-patched/main.c
+--- mksh/main.c	2019-01-05 13:24:45.000000000 +0000
++++ mksh-patched/main.c	2026-06-26 12:28:27.000000000 +0000
+@@ -25,6 +25,10 @@
+  * of said person's immediate fault when using the work as intended.
+  */
+ 
++#if defined(AMIX)
++#include <sys/time.h>
++#endif
++
+ #define EXTERN
+ #include "sh.h"
+ 
+diff -Naur mksh/misc.c mksh-patched/misc.c
+--- mksh/misc.c	2018-08-10 02:54:02.000000000 +0000
++++ mksh-patched/misc.c	2026-06-26 13:03:02.000000000 +0000
+@@ -1483,8 +1483,8 @@
+ 
+ 	if (max_colz > 2147483646) {
+ #ifndef MKSH_SMALL
+-		internal_warningf("print_columns called with %s=%zu >= INT_MAX",
+-		    "max_col", max_colz);
++		internal_warningf("print_columns called with %s=%lu >= INT_MAX",
++		    "max_col", (unsigned long)max_colz);
+ #endif
+ 		return;
+ 	}
+@@ -1492,8 +1492,8 @@
+ 
+ 	if (max_oct > 2147483646) {
+ #ifndef MKSH_SMALL
+-		internal_warningf("print_columns called with %s=%zu >= INT_MAX",
+-		    "max_oct", max_oct);
++		internal_warningf("print_columns called with %s=%lu >= INT_MAX",
++		    "max_oct", (unsigned long)max_oct);
+ #endif
+ 		return;
+ 	}
+diff -Naur mksh/shf.c mksh-patched/shf.c
+--- mksh/shf.c	2018-08-10 02:54:06.000000000 +0000
++++ mksh-patched/shf.c	2026-06-26 12:23:26.000000000 +0000
+@@ -746,8 +746,8 @@
+ 	ssize_t n;
+ 
+ 	if (!buf || bsize <= 0)
+-		internal_errorf("shf_snprintf: buf %zX, bsize %zd",
+-		    (size_t)buf, bsize);
++		internal_errorf("shf_snprintf: buf %lX, bsize %ld",
++		    (unsigned long)buf, bsize);
+ 
+ 	shf_sopen(buf, bsize, SHF_WR, &shf);
+ 	va_start(args, fmt);
+diff -Naur mksh/var.c mksh-patched/var.c
+--- mksh/var.c	2018-07-15 17:21:51.000000000 +0000
++++ mksh-patched/var.c	2026-06-26 12:29:29.000000000 +0000
+@@ -21,6 +21,10 @@
+  * of said person's immediate fault when using the work as intended.
+  */
+ 
++#if defined(AMIX)
++#include <sys/time.h>
++#endif
++
+ #include "sh.h"
+ #include "mirhash.h"
+ 

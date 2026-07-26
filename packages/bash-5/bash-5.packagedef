@@ -1,0 +1,15 @@
+packageSource=bash-5.0.tar.gz
+packageFile=bash-5.0.tar.gz
+packageChecksum=2b44b47b905be16f45709648f671820b
+packageExtraction=guntarsystemhelper.sh
+packageDir=bash-5.0
+packagePatch=bash-5.amixfixes.patch
+
+expectedToolList=
+dependenciesList=coreutils,readline
+envModifs=setupenv.sh
+configureRecipe=configureit
+buildRecipe=buildit
+installRecipe=installit
+passesChecksIndicator=1
+compilers=gcc

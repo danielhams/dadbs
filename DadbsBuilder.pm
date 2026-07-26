@@ -36,6 +36,12 @@ sub buildit
     my $packageId = $self->{packageId};
     dadbsprint "Building $packageId\n";
 
+    my $rootbuilddir = "$self->{buildDir}/$packageId";
+    if(!-d $rootbuilddir) {
+	die "Missing expected directory '$rootbuilddir' as target: $!\n";
+    }
+    my $outputlogfile = "$rootbuilddir/build.log";
+
     my $builddir = "$self->{buildDir}/$self->{packageId}/$self->{dadbsPackage}->{packageDir}";
     my $installdir = $self->{installDir};
     dadbsprint "Would build in $builddir\n";
@@ -52,8 +58,8 @@ sub buildit
     dadbsprint "Changing directory to $packageDefDir\n";
     chdir $packageDefDir;
 
-    my $buildRecipe = "$self->{packageDefsDir}/$self->{packageId}/$self->{dadbsPackage}->{buildRecipe}";
-    my $cmd = "$buildRecipe $builddir $installdir $extraargs";
+    my $buildRecipe = "$self->{dadbsPackage}->{buildRecipe}";
+    my $cmd = "./$buildRecipe $builddir $installdir $extraargs 1>$outputlogfile 2>&1";
     dadbsprint "About to execute $cmd\n";
     if( system($cmd) != 0 )
     {

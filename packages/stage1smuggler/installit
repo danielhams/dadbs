@@ -1,0 +1,17 @@
+#!/usr/bin/env sh
+
+BUILDDIR=$1
+INSTALLDIR=$2
+EXTRAARGS=$3
+echo $BUILDDIR
+echo $INSTALLDIR
+echo $EXTRAARGS
+. ./setupenv.sh
+
+# The magic
+for tool in tr mkdir cp ln rm install tee bison yacc; do
+    cp $DADBS_BOOT_ROOT/bin/$tool $INSTALLDIR/bin/
+    chmod 755 $INSTALLDIR/bin/$tool
+done
+
+exit 0

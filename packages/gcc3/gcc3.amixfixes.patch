@@ -1,0 +1,562 @@
+diff -Naur gcc-3.2.1/gcc/config/float-m68k.h gcc-3.2.1-patched/gcc/config/float-m68k.h
+--- gcc-3.2.1/gcc/config/float-m68k.h	2001-10-11 16:53:57.000000000 +0100
++++ gcc-3.2.1-patched/gcc/config/float-m68k.h	2026-07-22 09:04:01.000000000 +0100
+@@ -66,6 +66,40 @@
+ #undef DBL_MAX_10_EXP
+ #define DBL_MAX_10_EXP 308
+ 
++#if defined(AMIX)
++
++/* AMIX doesn't have the concept of long double enabled at all in userland */
++
++/* Number of base-FLT_RADIX digits in the significand of a long double */
++#undef LDBL_MANT_DIG
++#define LDBL_MANT_DIG DBL_MANT_DIG
++/* Number of decimal digits of precision in a long double */
++#undef LDBL_DIG
++#define LDBL_DIG DBL_DIG
++/* Difference between 1.0 and the minimum long double greater than 1.0 */
++#undef LDBL_EPSILON
++#define LDBL_EPSILON DBL_EPSILON
++/* Minimum int x such that FLT_RADIX**(x-1) is a normalised long double */
++#undef LDBL_MIN_EXP
++#define LDBL_MIN_EXP DBL_MIN_EXP
++/* Minimum normalised long double */
++#undef LDBL_MIN
++#define LDBL_MIN DBL_MIN
++/* Minimum int x such that 10**x is a normalised long double */
++#undef LDBL_MIN_10_EXP
++#define LDBL_MIN_10_EXP DBL_MIN_10_EXP
++/* Maximum int x such that FLT_RADIX**(x-1) is a representable long double */
++#undef LDBL_MAX_EXP
++#define LDBL_MAX_EXP DBL_MAX_EXP
++/* Maximum long double */
++#undef LDBL_MAX
++#define LDBL_MAX DBL_MAX
++/* Maximum int x such that 10**x is a representable long double */
++#undef LDBL_MAX_10_EXP
++#define LDBL_MAX_10_EXP DBL_MAX_10_EXP
++
++#else  /* !defined(AMIX) */
++
+    /* Number of base-FLT_RADIX digits in the significand of a long double */
+ #undef LDBL_MANT_DIG
+ #define LDBL_MANT_DIG 64
+@@ -94,6 +128,8 @@
+ #undef LDBL_MAX_10_EXP
+ #define LDBL_MAX_10_EXP 4932
+ 
++#endif /* !defined(AMIX) */
++
+ #if defined (__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
+    /* The floating-point expression evaluation method.
+         -1  indeterminate
+diff -Naur gcc-3.2.1/gcc/config/m68k/amix.h gcc-3.2.1-patched/gcc/config/m68k/amix.h
+--- gcc-3.2.1/gcc/config/m68k/amix.h	2001-12-17 15:05:34.000000000 +0000
++++ gcc-3.2.1-patched/gcc/config/m68k/amix.h	2026-07-23 16:44:28.249457884 +0100
+@@ -1,13 +1,13 @@
+ /* Definitions of target machine for GNU compiler.
+    Commodore Amiga A3000UX version.
+ 
+-   Copyright (C) 1991, 1993, 2000 Free Software Foundation, Inc.
++   Copyright (C) 1991, 1993 Free Software Foundation, Inc.
+ 
+ This file is part of GNU CC.
+ 
+ GNU CC is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+-the Free Software Foundation; either version 2, or (at your option)
++the Free Software Foundation; either version 1, or (at your option)
+ any later version.
+ 
+ GNU CC is distributed in the hope that it will be useful,
+@@ -19,6 +19,214 @@
+ along with GNU CC; see the file COPYING.  If not, write to
+ the Free Software Foundation, 59 Temple Place - Suite 330,
+ Boston, MA 02111-1307, USA.  */
++#ifndef AMIX_H_
++#define AMIX_H_
++
++#if defined(USE_GAS)
++#define AMIX_NO_SGS_POLLUTION
++#define SGS_NO_LI
++#endif
++
++#if defined(USE_GAS)
++
++/* Don't include m68kv4.h here, as it forces sgs.h.
++   Instead, we pull in the base m68k and SVR4 defaults directly. */
++#include "m68k/m68k.h"
++
++#ifndef TARGET_DEFAULT
++#define TARGET_DEFAULT (5 /* 68020 */ + 2 /* 68881 */)
++#endif
++
++#include "svr4.h"
++
++#ifndef sys_siglist
++#define sys_signlist _sys_siglist
++#endif
++
++#define CPP_SPEC \
++"%{!msoft-float:%{mfpa:-D__HAVE_FPA__ }%{!mfpa:-D__HAVE_68881__ }}\
++%{m68000:-D__mc68010__}%{mc68000:-D__mc68010__}%{!mc68000:%{!m68000:-D__mc68020__}} \
++%{!ansi:%{m68000:-Dmc68010}%{mc68000:-Dmc68010}%{!mc68000:%{!m68000:-Dmc68020}}}"
++
++#ifdef CPP_PREDEFINES
++#undef CPP_PREDEFINES
++#endif
++#define CPP_PREDEFINES \
++  "-Dm68k -Dunix -DAMIX -D__svr4__ -D__motorola__ \
++ -Amachine=m68k -Acpu=m68k -Asystem=unix -Alint=off"
++
++#ifdef SGS
++#undef SGS
++#endif
++
++#ifdef SGS_SWITCH_TABLES
++#undef SGS_SWITCH_TABLES
++#endif
++
++#ifdef SGS_CMP_ORDER
++#undef SGS_CMP_ORDER
++#endif
++
++#ifndef MOTOROLA
++#define MOTOROLA
++#endif
++
++/* Tell GCC we are using ELF */
++#define OBJECT_FORMAT_ELF 1
++
++/* Define assembly syntax for switching sections */
++#define ASM_OUTPUT_SECTION_NAME(FILE, DECL, NAME, ADDR) \
++  fprintf (FILE, "\t.section\t%s\n", NAME)
++
++/* AMIX/SVR4 uses .init and .fini sections for constructors */
++#define HAS_INIT_SECTION 1
++
++/* This helps crtstuff.c decide which path to take */
++#define TARGET_ASM_NAMED_SECTION  default_elf_asm_named_section
++
++#define JUMP_TABLES_IN_TEXT_SECTION 1
++
++#undef ASM_OUTPUT_CASE_FETCH
++#undef ASM_OUTPUT_CASE_END
++
++#ifdef CASE_VECTOR_MODE
++#undef CASE_VECTOR_MODE
++#endif
++#define CASE_VECTOR_MODE HImode
++
++#undef ASM_OUTPUT_CASE_FETCH
++#define ASM_OUTPUT_CASE_FETCH(FILE, LABELNO, REGNAME) \
++  asm_fprintf (FILE, "%0LL%d(%%pc,%s.", LABELNO, REGNAME)
++
++/* Add any other specific SVR4 overrides we need from m68kv4.h
++   (like STRUCT_VALUE_REGNUM 8 for the SVR4 ABI) */
++#undef STRUCT_VALUE_REGNUM
++#define STRUCT_VALUE_REGNUM 8
++
++/* Tell GCC to use memcpy/memset/memmove instead of bcopy/bzero/bcmp */
++#define TARGET_MEM_FUNCTIONS 1
++
++/* No longer supported under gcc 3 */
++/*
++#undef ASM_IDENTIFY_GCC
++#define ASM_IDENTIFY_GCC(FILE) fputs ("gcc2_compiled.:\n", FILE)
++*/
++
++/* Define how the m68k registers should be numbered for Dwarf output.
++   The numbering provided here should be compatible with the native
++   SVR4 SDB debugger in the m68k/SVR4 reference port, where d0-d7
++   are 0-7, a0-a8 are 8-15, and fp0-fp7 are 16-23. */
++
++#define DBX_REGISTER_NUMBER(REGNO) (REGNO)
++
++/* Local common symbols are declared to the assembler with ".lcomm" rather
++   than ".bss", so override the definition in svr4.h */
++
++#undef BSS_ASM_OP
++#define BSS_ASM_OP	".lcomm"
++
++/* Boundary (in *bits*) on which stack pointer should be aligned.
++   The m68k/SVR4 convention is to keep the stack pointer longword aligned. */
++
++#undef STACK_BOUNDARY
++#define STACK_BOUNDARY 32
++
++/* Alignment of field after `int : 0' in a structure.
++   For m68k/SVR4, this is the next longword boundary. */
++
++#undef EMPTY_FIELD_BOUNDARY
++#define EMPTY_FIELD_BOUNDARY 32
++
++/* No data type wants to be aligned rounder than this.
++   For m68k/SVR4, some types (doubles for example) are aligned on 8 byte
++   boundaries */
++
++#undef BIGGEST_ALIGNMENT
++#define BIGGEST_ALIGNMENT 64
++
++/* The prefix for register names.  Note that REGISTER_NAMES
++   is supposed to include this prefix. Also note that this is NOT an
++   fprintf format string, it is a literal string */
++
++#undef REGISTER_PREFIX
++#define REGISTER_PREFIX "%"
++
++#undef ASM_COMMENT_START
++#define ASM_COMMENT_START "|"
++
++/* The prefix for local (compiler generated) labels.
++   These labels will not appear in the symbol table. */
++
++#undef LOCAL_LABEL_PREFIX
++#define LOCAL_LABEL_PREFIX "."
++
++/* The prefix to add to user-visible assembler symbols. */
++
++#undef USER_LABEL_PREFIX
++#define USER_LABEL_PREFIX ""
++
++/* The prefix for immediate operands.  */
++
++#undef IMMEDIATE_PREFIX
++#define IMMEDIATE_PREFIX "#"
++
++/* How to refer to registers in assembler output.
++   This sequence is indexed by compiler's hard-register-number.
++   Motorola format uses different register names than defined in m68k.h.
++   We also take this chance to convert 'a6' to 'fp' */
++
++#undef REGISTER_NAMES
++#define REGISTER_NAMES \
++{"%d0",   "%d1",   "%d2",   "%d3",   "%d4",   "%d5",   "%d6",   "%d7",	     \
++ "%a0",   "%a1",   "%a2",   "%a3",   "%a4",   "%a5",   "%fp",   "%sp",	     \
++ "%fp0",  "%fp1",  "%fp2",  "%fp3",  "%fp4",  "%fp5",  "%fp6",  "%fp7" }
++
++/* 
++ * AMIX/SVR4 ABI Overrides
++ * Generic m68k.h defaults to %d0 for everything. 
++ * AMIX expects:
++ * - Doubles/Floats in %fp0 (Register 16) if an FPU is present.
++ * - Pointers in %a0 (Register 8).
++ * - Integers in %d0 (Register 0).
++ */
++
++#undef FUNCTION_VALUE
++#define FUNCTION_VALUE(VALTYPE, FUNC)                                   \
++  (TREE_CODE (VALTYPE) == REAL_TYPE && TARGET_68881                     \
++   ? gen_rtx (REG, TYPE_MODE (VALTYPE), 16)                             \
++   : (POINTER_TYPE_P (VALTYPE)                                          \
++      ? gen_rtx (REG, TYPE_MODE (VALTYPE), 8)                           \
++      : gen_rtx (REG, TYPE_MODE (VALTYPE), 0)))
++
++#undef LIBCALL_VALUE
++#define LIBCALL_VALUE(MODE)                                             \
++  ((((MODE) == SFmode || (MODE) == DFmode || (MODE) == XFmode)          \
++    && TARGET_68881)                                                    \
++   ? gen_rtx (REG, (MODE), 16)                                          \
++   : gen_rtx (REG, (MODE), 0))
++
++/* Translate opcodes into opcodes that our GNU as will acccept */
++#undef ASM_OUTPUT_OPCODE
++#define ASM_OUTPUT_OPCODE(FILE, PTR)	        \
++{							                    \
++  extern int flag_pic;					        \
++  if (!strncmp ((PTR), "jbsr", 4))		        \
++    { if (flag_pic) fprintf ((FILE), "bsr");	\
++      else fprintf ((FILE), "jsr");		        \
++      (PTR) += 4; }					            \
++  else if (!strncmp ((PTR), "jra", 3))	        \
++    { fprintf ((FILE), "jra"); (PTR) += 3; }	\
++  else if (!strncmp ((PTR), "jmp", 3))	        \
++    { fprintf ((FILE), "jmp"); (PTR) += 3; }	\
++  else if ((PTR)[0] == 'j' && (PTR)[1] == 'b')	\
++    { fprintf ((FILE), "b"); (PTR) += 2; }		\
++  else if ((PTR)[0] == 'j' && (PTR)[1] != 's' && (PTR)[1] != 'r') \
++    { fprintf ((FILE), "b"); (PTR) += 1; }		\
++}
++
++#else
++
++/* NON GNU AS/LD PATH - as before */
+ 
+ #include "m68k/m68kv4.h"
+ 
+@@ -36,7 +244,7 @@
+ /* Names to predefine in the preprocessor for this target machine.  For the
+    Amiga, these definitions match those of the native AT&T compiler.  Note
+    that we override the definition in m68kv4.h, where SVR4 is defined and
+-   AMIX isn't.  */
++   AMIX isn't. */
+ 
+ #undef CPP_PREDEFINES
+ #define CPP_PREDEFINES \
+@@ -55,7 +263,7 @@
+ #define ASM_OUTPUT_CASE_END(FILE,NUM,TABLE)				\
+ do {									\
+   if (switch_table_difference_label_flag)				\
+-    asm_fprintf ((FILE), "%s%LLD%d,%LL%d\n", SET_ASM_OP, (NUM), (NUM));\
++    asm_fprintf ((FILE), "\t%s %LLD%d,%LL%d\n", SET_ASM_OP, (NUM), (NUM));\
+   switch_table_difference_label_flag = 0;				\
+ } while (0)
+ 
+@@ -88,22 +296,22 @@
+ #undef ASM_OUTPUT_ALIGNED_LOCAL
+ #define ASM_OUTPUT_ALIGNED_LOCAL(FILE, NAME, SIZE, ALIGN)		\
+ do {									\
+-  fprintf ((FILE), "%s%s,%u,%u\n",					\
++  fprintf ((FILE), "\t%s\t%s,%u,%u\n",					\
+ 	   BSS_ASM_OP, (NAME), (SIZE), MAX ((ALIGN) / BITS_PER_UNIT, 4)); \
+ } while (0)
+ 
+ /* This definition of ASM_OUTPUT_ASCII is the same as the one in m68k/sgs.h,
+    which has been overridden by the one in svr4.h.  However, we can't use
+    the one in svr4.h because the amix assembler croaks on some of the
+-   strings that it emits (such as .string "\"%s\"\n").  */
++   strings that it emits (such as .string "\"%s\"\n"). */
+ 
+ #undef ASM_OUTPUT_ASCII
+ #define ASM_OUTPUT_ASCII(FILE,PTR,LEN)				\
+ do {								\
+-  register size_t sp = 0, limit = (LEN);			\
+-  fputs (integer_asm_op (1, TRUE), (FILE));			\
++  register int sp = 0, lp = 0, ch;				\
++  fprintf ((FILE), "\t%s ", BYTE_ASM_OP);			\
+   do {								\
+-    int ch = (PTR)[sp];						\
++    ch = (PTR)[sp];						\
+     if (ch > ' ' && ! (ch & 0x80) && ch != '\\')		\
+       {								\
+ 	fprintf ((FILE), "'%c", ch);				\
+@@ -112,18 +320,18 @@
+       {								\
+ 	fprintf ((FILE), "0x%x", ch);				\
+       }								\
+-    if (++sp < limit)						\
++    if (++sp < (LEN))						\
+       {								\
+ 	if ((sp % 10) == 0)					\
+ 	  {							\
+-	    fprintf ((FILE), "\n%s", integer_asm_op (1, TRUE));	\
++	    fprintf ((FILE), "\n\t%s ", BYTE_ASM_OP);		\
+ 	  }							\
+ 	else							\
+ 	  {							\
+ 	    putc (',', (FILE));					\
+ 	  }							\
+       }								\
+-  } while (sp < limit);						\
++  } while (sp < (LEN));						\
+   putc ('\n', (FILE));						\
+ } while (0)
+ 
+@@ -136,12 +344,10 @@
+ 
+ #undef ASM_GENERATE_INTERNAL_LABEL
+ #define ASM_GENERATE_INTERNAL_LABEL(LABEL,PREFIX,NUM)	\
+-do {							\
+   if (flag_pic && !strcmp(PREFIX,"LC"))			\
+-    sprintf (LABEL, "*%s%%%ld", PREFIX, (long)(NUM));	\
++    sprintf (LABEL, "*%s%%%d", PREFIX, NUM);		\
+   else							\
+-    sprintf (LABEL, "*%s%s%ld", LOCAL_LABEL_PREFIX, PREFIX, (long)(NUM)); \
+-} while (0)
++    sprintf (LABEL, "*%s%s%d", LOCAL_LABEL_PREFIX, PREFIX, NUM)
+ 
+ #undef ASM_OUTPUT_INTERNAL_LABEL
+ #define ASM_OUTPUT_INTERNAL_LABEL(FILE,PREFIX,NUM)	\
+@@ -149,3 +355,86 @@
+     asm_fprintf (FILE, "%s%%%d:\n", PREFIX, NUM);	\
+   else							\
+     asm_fprintf (FILE, "%0L%s%d:\n", PREFIX, NUM)
++
++#endif
++
++/*
++ * Globally set sizeof(long double) == sizeof(double) as Commodore never
++ * supported real m68k long double computations - all userland expects
++ * "long double" to actually be double
++ */
++#if defined(LONG_DOUBLE_TYPE_SIZE)
++#undef LONG_DOUBLE_TYPE_SIZE
++#endif
++#define LONG_DOUBLE_TYPE_SIZE 64
++
++/*
++ * And yet more AMIX "special casing". AMIX libc sprintf does very strange
++ * formatting with NaNs (-nan0x00000000000080000000). So to work around
++ * this, we special case the ASM_OUTPUT_DOUBLE macro to handle Inf and Nan
++ * and _only_ hand off to sprintf for known values. GAS can't accept the
++ * values otherwise.
++ * We _DONT_ need to do this for floats - they use a straight splat of
++ * a long into the output.
++ */
++#if defined(ASM_OUTPUT_DOUBLE)
++#undef ASM_OUTPUT_DOUBLE
++#endif
++#define ASM_OUTPUT_DOUBLE(FILE,VALUE)                       \
++do {                                                        \
++  if (REAL_VALUE_ISNAN (VALUE))                             \
++  {                                                         \
++        fprintf (FILE, "\t.double 0r-nan\n");               \
++  }                                                         \
++  else if (REAL_VALUE_ISINF (VALUE))                        \
++  {                                                         \
++        if (REAL_VALUE_NEGATIVE (VALUE))                    \
++          fprintf (FILE, "\t.double 0r-inf\n");             \
++        else                                                \
++          fprintf (FILE, "\t.double 0rinf\n");              \
++  }                                                         \
++  else                                                      \
++  { char dstr[30];                                          \
++        REAL_VALUE_TO_DECIMAL ((VALUE), "%.20g", dstr);     \
++        fprintf (FILE, "\t.double 0r%s\n", dstr);           \
++  }                                                         \
++} while (0)
++
++#if defined(ASM_OUTPUT_DOUBLE_OPERAND)
++#undef ASM_OUTPUT_DOUBLE_OPERAND
++#endif
++#define ASM_OUTPUT_DOUBLE_OPERAND(FILE,VALUE)               \
++do {                                                        \
++  if (REAL_VALUE_ISNAN (VALUE))                             \
++  {                                                         \
++        asm_fprintf (FILE, "%I0r-nan");                     \
++  }                                                         \
++  else if (REAL_VALUE_ISINF (VALUE))                        \
++  {                                                         \
++        if (REAL_VALUE_NEGATIVE (VALUE))                    \
++          asm_fprintf (FILE, "%I0r-inf");                   \
++        else                                                \
++          asm_fprintf (FILE, "%I0rinf");                    \
++  }                                                         \
++  else                                                      \
++  { char dstr[30];                                          \
++        REAL_VALUE_TO_DECIMAL ((VALUE), "%.20g", dstr);     \
++        asm_fprintf (FILE, "%I0r%s", dstr);                 \
++  }                                                         \
++} while (0)
++
++#if defined(PREFERRED_DEBUGGING_TYPE)
++#undef PREFERRED_DEBUGGING_TYPE
++#endif
++#define PREFERRED_DEBUGGING_TYPE DWARF2_DEBUG
++
++#define DWARF2_DEBUGGING_INFO 1
++
++/* These aren't needed as they are already defined for us */
++/*
++#define DWARF2_UNWIND_INFO 1
++#define INCOMING_RETURN_ADDR_RTX \
++  gen_rtx_MEM (Pmode, plus_constant (stack_pointer_rtx, 4))
++*/
++
++#endif /* AMIX_H_ */
+diff -Naur gcc-3.2.1/gcc/config/m68k/amix-pre.h gcc-3.2.1-patched/gcc/config/m68k/amix-pre.h
+--- gcc-3.2.1/gcc/config/m68k/amix-pre.h	1970-01-01 01:00:00.000000000 +0100
++++ gcc-3.2.1-patched/gcc/config/m68k/amix-pre.h	2026-07-22 10:29:20.000000000 +0100
+@@ -0,0 +1,8 @@
++/* amix-pre.h - Toggles for AMIX bootstrap */
++#ifndef USE_GAS
++#define USE_GAS
++#endif
++
++#ifndef USE_GLD
++#define USE_GLD
++#endif
+diff -Naur gcc-3.2.1/gcc/config/m68k/m68k.c gcc-3.2.1-patched/gcc/config/m68k/m68k.c
+--- gcc-3.2.1/gcc/config/m68k/m68k.c	2001-12-23 16:07:14.000000000 +0000
++++ gcc-3.2.1-patched/gcc/config/m68k/m68k.c	2026-07-23 16:40:33.825014480 +0100
+@@ -3153,6 +3153,13 @@
+   REAL_VALUE_TYPE r, r1;
+   int i;
+ 
++  if (REAL_VALUES_LESS (r, dconst0)
++      || REAL_VALUES_EQUAL (r, dconst0)
++      || REAL_VALUE_ISNAN (r)
++      || REAL_VALUE_ISINF (r)) {
++    return 0;
++  }
++
+ #ifndef REAL_ARITHMETIC
+ #if HOST_FLOAT_FORMAT != TARGET_FLOAT_FORMAT
+   if (! flag_pretend_float)
+@@ -3167,7 +3174,7 @@
+ 
+   r1 = dconst1;
+   i = 0;
+-  while (REAL_VALUES_LESS (r1, r))
++  while (REAL_VALUES_LESS (r1, r) && i < 16384)
+     {
+       r1 = REAL_VALUE_LDEXP (dconst1, i);
+       if (REAL_VALUES_EQUAL (r1, r))
+diff -Naur gcc-3.2.1/gcc/config/m68k/m68k.md gcc-3.2.1-patched/gcc/config/m68k/m68k.md
+--- gcc-3.2.1/gcc/config/m68k/m68k.md	2002-04-02 09:14:14.000000000 +0100
++++ gcc-3.2.1-patched/gcc/config/m68k/m68k.md	2026-07-22 09:09:48.000000000 +0100
+@@ -6975,7 +6975,9 @@
+     }
+   else
+     {
+-#ifdef MOTOROLA
++#if defined(MOTOROLA) && defined(AMIX)
++      return \"jmp 2(%%pc,%0.w)\";
++#elif defined(MOTOROLA)
+       return \"jmp (2,pc,%0.w)\";
+ #else
+       return \"jmp pc@(2,%0:w)\";
+diff -Naur gcc-3.2.1/gcc/config/svr4.h gcc-3.2.1-patched/gcc/config/svr4.h
+--- gcc-3.2.1/gcc/config/svr4.h	2001-10-19 23:27:22.000000000 +0100
++++ gcc-3.2.1-patched/gcc/config/svr4.h	2026-07-22 09:15:57.000000000 +0100
+@@ -185,6 +185,7 @@
+    conforming manner or not.  */
+ 
+ #undef	STARTFILE_SPEC
++#if !defined(AMIX)
+ #define STARTFILE_SPEC "%{!shared: \
+ 			 %{!symbolic: \
+ 			  %{pg:gcrt1.o%s}%{!pg:%{p:mcrt1.o%s}%{!p:crt1.o%s}}}}\
+@@ -194,6 +195,13 @@
+ 			 %{traditional:values-Xt.o%s} \
+ 			 %{!traditional:values-Xa.o%s}} \
+  			crtbegin.o%s"
++#else
++#define STARTFILE_SPEC "%{!shared: \
++			 %{!symbolic: \
++			  %{pg:gcrt1.o%s}%{!pg:%{p:mcrt1.o%s}%{!p:crt1.o%s}}}}\
++			%{pg:gcrti.o%s}%{!pg:crti.o%s} \
++ 			crtbegin.o%s"
++#endif
+ 
+ /* Allow #sccs in preprocessor.  */
+ 
+diff -Naur gcc-3.2.1/gcc/config/t-svr4 gcc-3.2.1-patched/gcc/config/t-svr4
+--- gcc-3.2.1/gcc/config/t-svr4	2001-11-15 13:05:53.000000000 +0000
++++ gcc-3.2.1-patched/gcc/config/t-svr4	2026-07-22 09:16:33.000000000 +0100
+@@ -4,8 +4,10 @@
+ # we will be doing that, we just always use -fPIC when compiling the
+ # routines in crtstuff.c.  Likewise for libgcc2.c.
+ 
+-CRTSTUFF_T_CFLAGS = -fPIC
+-TARGET_LIBGCC2_CFLAGS = -fPIC
++#CRTSTUFF_T_CFLAGS = -fPIC
++#TARGET_LIBGCC2_CFLAGS = -fPIC
++CRTSTUFF_T_CFLAGS =
++TARGET_LIBGCC2_CFLAGS =
+ 
+ # See all the declarations.
+ FIXPROTO_DEFINES = -D_XOPEN_SOURCE
+diff -Naur gcc-3.2.1/gcc/config.gcc gcc-3.2.1-patched/gcc/config.gcc
+--- gcc-3.2.1/gcc/config.gcc	2002-10-23 18:28:29.000000000 +0100
++++ gcc-3.2.1-patched/gcc/config.gcc	2026-07-22 10:29:49.000000000 +0100
+@@ -1872,7 +1872,7 @@
+ 	use_collect2=yes
+ 	;;
+ m68k-cbm-sysv4*)		# Commodore variant of V.4.
+-	tm_file=m68k/amix.h
++	tm_file="m68k/amix-pre.h m68k/amix.h"
+ 	xm_defines=POSIX
+ 	tmake_file=t-svr4
+ 	extra_parts="crtbegin.o crtend.o"

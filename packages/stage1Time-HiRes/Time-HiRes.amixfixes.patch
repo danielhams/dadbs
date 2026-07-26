@@ -1,0 +1,11 @@
+diff -Naur Time-HiRes-01.19/Makefile.PL Time-HiRes-01.19-patched/Makefile.PL
+--- Time-HiRes-01.19/Makefile.PL	1998-09-30 02:23:05.000000000 +0000
++++ Time-HiRes-01.19-patched/Makefile.PL	2026-07-11 01:29:51.069599000 +0000
+@@ -120,6 +120,7 @@
+     # this might break the link, try it if it can't find some things you 
+     # honestly think should be in there...
+     # $LIBS = ['-lucb -lbsd'];
++    $LIBS = ['-L/usr/ccs/lib -lc'];
+ 
+     # ... but ucb is poison for Solaris, and probably Linux. honest.
+     $LIBS = [''] if $Config{'osname'} eq 'solaris';

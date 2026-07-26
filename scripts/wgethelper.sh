@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
 
 SCRIPTLOCATION=$1
 DESTDIR=$2;
@@ -7,7 +7,7 @@ echo $SCRIPTLOCATION;
 echo $DESTDIR;
 echo $SOURCEURL;
 cd $DESTDIR || exit -1;
-# We will eventually be able to use the "/usr/dadbs/current/bin/wget",
+# We will eventually be able to use the "/usr/dadbs/X.Y.Z/bin/wget",
 # but for now it's not there.
 
 # if wget cannot be made to work - potentially

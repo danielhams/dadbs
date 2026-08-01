@@ -8,7 +8,5 @@ echo $INSTALLDIR
 echo $EXTRAARGS
 . ./setupenv.sh
 cd $BUILDDIR || exit -1
-
-make INSTALL="$INSTALLDIR/bin/install -c" CC="$CC" CFLAGS="$CFLAGS" MAKEINFO=true SHELL="$SHELL" CONFIG_SHELL="$CONFIG_SHELL" install || exit -1
-
+make -f Makefile-libbz2_so || exit -1
 exit 0

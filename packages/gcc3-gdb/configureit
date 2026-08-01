@@ -1,0 +1,19 @@
+#!/usr/bin/env sh
+
+BUILDDIR=$1
+INSTALLDIR=$2
+EXTRAARGS=$3
+echo $BUILDDIR
+echo $INSTALLDIR
+echo $EXTRAARGS
+. ./setupenv.sh
+cd $BUILDDIR || exit -1
+# Early exist for patch generation
+#exit 1
+
+# Install gcc3 into a separate subdirectory as its very alpha state
+# for the moment.
+mkdir -p $INSTALLDIR/gcc3 || exit -1
+
+CC="$CC" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LOADLIBES="$LOADLIBES" CONFIG_SHELL="$CONFIG_SHELL" SHELL="$SHELL" $SHELL ./configure --prefix=$INSTALLDIR/gcc3 --host=m68k-cbm-sysv4 --target=m68k-cbm-sysv4 --enable-targets=m68k-cbm-sysv4 --disable-nls --disable-werror --enable-shared --with-system-readline || exit -1
+exit 0

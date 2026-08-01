@@ -1,0 +1,14 @@
+packageSource=gdb-5.3.tar.gz
+packageFile=gdb-5.3.tar.gz
+packageChecksum=1e8566325f222edfbdd93e40c6ae921b
+packageExtraction=tarxfsystemhelper.sh
+packageDir=gdb-5.3
+packagePatch=gdb.amixfixes.patch
+expectedToolList=
+dependenciesList=stage1binutils,stage1gcc,readline
+envModifs=setupenv.sh
+configureRecipe=configureit
+buildRecipe=buildit
+installRecipe=installit
+passesChecksIndicator=1
+compilers=gcc

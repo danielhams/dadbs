@@ -1,5 +1,7 @@
 export CC="$DADBS_CC"
 export CFLAGS="$DADBS_ARCH_CFLAGS"
+# For debugging
+#export CFLAGS="-g -O0"
 export LDFLAGS="$DADBS_ARCH_LDFLAGS"
 export LIBS=""
 

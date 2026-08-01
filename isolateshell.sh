@@ -35,4 +35,4 @@ echo "Set PATH=$PATH"
 echo "Set LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
 
 export PS1='[isolshell \u@\h \W]\$ '
-exec /usr/dadbs/0.1.0/bin/bash --norc -i
+exec /usr/dadbs/current/bin/bash-5 --norc -i

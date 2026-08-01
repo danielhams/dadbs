@@ -120,6 +120,7 @@ sub evaluate_environment
     # 2. Resolve phsyical roots
     my $raw_boot_root = $ENV{'DADBS_BOOT_ROOT'} || "/usr/dadbs/current";
     my $real_boot_root = abs_path($raw_boot_root) || $raw_boot_root;
+    $ENV{'REAL_BOOT_ROOT'} = $real_boot_root;
     my $real_inst_root = abs_path($installDir) || $installDir;
 
     # 3. Work out PATH/LD_LIBRARY_PATH/PKG_CONFIG_PATH

@@ -6,7 +6,7 @@ packageDir=bash-5.0
 packagePatch=bash-5.amixfixes.patch
 
 expectedToolList=
-dependenciesList=coreutils,readline
+dependenciesList=readline
 envModifs=setupenv.sh
 configureRecipe=configureit
 buildRecipe=buildit

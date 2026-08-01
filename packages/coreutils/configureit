@@ -12,7 +12,7 @@ cd $BUILDDIR || exit -1
 # Early exit for patch generation
 #exit 1
 
-export SHELL=$INSTALLDIR/bin/bash-3
+export SHELL=$INSTALLDIR/bin/mksh
 export CONFIG_SHELL=$SHELL
 
 # Ensure we're not going to "rebuild the world" with autoconf issues

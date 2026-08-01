@@ -8,10 +8,17 @@ echo $INSTALLDIR
 echo $EXTRAARGS
 . ./setupenv.sh
 
+# Make the magic directories we need
+mkdir -p $INSTALLDIR/bin
+mkdir -p $INSTALLDIR/lib
+mkdir -p $INSTALLDIR/share
+
 # The magic
 for tool in tr mkdir cp ln rm install tee bison yacc; do
     cp $DADBS_BOOT_ROOT/bin/$tool $INSTALLDIR/bin/
     chmod 755 $INSTALLDIR/bin/$tool
 done
+
+exit 2
 
 exit 0

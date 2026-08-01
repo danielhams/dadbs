@@ -10,3 +10,9 @@ CC="gcc"
 CFLAGS="$DADBS_ARCH_CFLAGS"
 LDFLAGS="$DADBS_ARCH_LDFLAGS"
 export CC CFLAGS LDFLAGS
+XX=g++
+CXXFLAGS="$DADBS_ARCH_CXXFLAGS"
+export CXX CXXFLAGS
+# Magical "extra" libraries flag that gdb uses
+LOADLIBES="-lsocket -lnsl"
+export LOADLIBES

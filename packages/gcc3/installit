@@ -9,6 +9,10 @@ echo $EXTRAARGS
 . ./setupenv.sh
 cd $BUILDDIR || exit -1
 # Only C for now
+
+# Note - setting "INSTALL" actually causes a make crash/coredump
+# so for now I'll put up with a slower install phase
+#make INSTALL="$INSTALLDIR/bin/install -c" CC="$CC" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LIBGCC2_DEBUG_CFLAGS="$LIBGCC2_DEBUG_CFLAGS" MAKEINFO=true CONFIG_SHELL="$CONFIG_SHELL" SHELL="$SHELL" LANGUAGES="c" install || exit -1
 make CC="$CC" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LIBGCC2_DEBUG_CFLAGS="$LIBGCC2_DEBUG_CFLAGS" MAKEINFO=true CONFIG_SHELL="$CONFIG_SHELL" SHELL="$SHELL" LANGUAGES="c" install || exit -1
 
 # Exit for manual hash updating ("stop the world rebuild")
